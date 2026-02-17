@@ -1,8 +1,10 @@
 // API Helper - Centralized place for all backend API calls
 import axios from 'axios';
 
-// Base URL for your backend
-const API_URL = 'http://localhost:5000/api';
+// Base URL for your backend - automatically uses production or localhost
+const API_URL = import.meta.env.PROD 
+  ? 'https://dassass.onrender.com/api' 
+  : 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -137,3 +139,4 @@ export default api;
 // - localStorage.getItem('token') retrieves saved token
 // - Each function returns a promise with the API response
 // - Import these functions in your components: import { loginParticipant } from '../utils/api'
+
