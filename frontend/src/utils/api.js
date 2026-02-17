@@ -1,11 +1,8 @@
 // API Helper - Centralized place for all backend API calls
 import axios from 'axios';
 
-// Base URL for your backend - automatically uses production or localhost
-const API_URL = import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api' 
-    : 'https://dassass.onrender.com/api');
+// Base URL for your backend
+const API_URL = 'https://dassass.onrender.com/api';
 
 // Create axios instance with default config
 const api = axios.create({
