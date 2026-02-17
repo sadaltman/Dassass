@@ -19,7 +19,11 @@ app.use(express.json());
 
 // Configure CORS to allow requests from frontend
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'], // Support both ports
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5174',
+    'https://dassassjkl.vercel.app'
+  ],
   credentials: true
 }));
 
@@ -65,3 +69,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT,()=>{
     console.log(`Server runs at ${PORT}`);
 });
+
