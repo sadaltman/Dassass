@@ -24,7 +24,10 @@ app.use(cors({
     'http://localhost:5174',
     'https://dassasskjkjl.vercel.app'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
 app.use('/api/auth',AuthRoutes);

@@ -11,7 +11,8 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 // Add token to requests automatically if user is logged in
@@ -41,7 +42,8 @@ export const organizerApi = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 organizerApi.interceptors.request.use((config) => {
