@@ -37,7 +37,7 @@ function OrganizerProfile() {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/organizers/profile', {
+      const response = await axios.get('https://dassass.onrender.com/api/organizers/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -74,7 +74,7 @@ function OrganizerProfile() {
 
     try {
       await axios.put(
-        'http://localhost:5000/api/organizers/profile',
+        'https://dassass.onrender.com/api/organizers/profile',
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -108,7 +108,7 @@ function OrganizerProfile() {
 
     try {
       await axios.put(
-        'http://localhost:5000/api/organizers/change-password',
+        'https://dassass.onrender.com/api/organizers/change-password',
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword
@@ -132,7 +132,7 @@ function OrganizerProfile() {
 
     try {
       await axios.post(
-        'http://localhost:5000/api/organizers/request-password-reset',
+        'https://dassass.onrender.com/api/organizers/request-password-reset',
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

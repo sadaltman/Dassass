@@ -28,7 +28,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/admin/organizers',
+        'https://dassass.onrender.com/api/admin/organizers',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -45,7 +45,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/admin/password-resets',
+        'https://dassass.onrender.com/api/admin/password-resets',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPasswordResets(response.data.requests || []);
@@ -59,7 +59,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/admin/password-resets/${id}/approve`,
+        `https://dassass.onrender.com/api/admin/password-resets/${id}/approve`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,7 +77,7 @@ function AdminDashboard() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/admin/password-resets/${id}/reject`,
+        `https://dassass.onrender.com/api/admin/password-resets/${id}/reject`,
         { comment: comment || 'Request rejected by admin' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -95,7 +95,7 @@ function AdminDashboard() {
     
     try {
       await axios.post(
-        'http://localhost:5000/api/admin/organizers',
+        'https://dassass.onrender.com/api/admin/organizers',
         newOrganizer,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -114,7 +114,7 @@ function AdminDashboard() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/admin/organizers/${id}/toggle`,
+        `https://dassass.onrender.com/api/admin/organizers/${id}/toggle`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -132,7 +132,7 @@ function AdminDashboard() {
     
     try {
       await axios.delete(
-        `http://localhost:5000/api/admin/organizers/${id}`,
+        `https://dassass.onrender.com/api/admin/organizers/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

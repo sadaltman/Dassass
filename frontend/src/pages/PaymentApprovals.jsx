@@ -37,7 +37,7 @@ function PaymentApprovals() {
     
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/registrations/pending-payments',
+        'https://dassass.onrender.com/api/registrations/pending-payments',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -56,7 +56,7 @@ function PaymentApprovals() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/registrations/${id}/approve-payment`,
+        `https://dassass.onrender.com/api/registrations/${id}/approve-payment`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -73,7 +73,7 @@ function PaymentApprovals() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/registrations/${id}/reject-payment`,
+        `https://dassass.onrender.com/api/registrations/${id}/reject-payment`,
         { reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );

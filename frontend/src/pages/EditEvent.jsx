@@ -53,7 +53,7 @@ function EditEvent() {
     }
 
     try {
-      const response = await axios.get(`http://localhost:5000/api/events/${id}`, {
+      const response = await axios.get(`https://dassass.onrender.com/api/events/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -242,7 +242,7 @@ function EditEvent() {
         };
       }
 
-      await axios.put(`http://localhost:5000/api/events/${id}`, eventData, {
+      await axios.put(`https://dassass.onrender.com/api/events/${id}`, eventData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

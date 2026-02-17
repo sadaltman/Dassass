@@ -18,7 +18,7 @@ function MyEvents() {
     
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/events/my-events',
+        'https://dassass.onrender.com/api/events/my-events',
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -35,7 +35,7 @@ function MyEvents() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { status: 'published' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -54,7 +54,7 @@ function MyEvents() {
     
     try {
       await axios.delete(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

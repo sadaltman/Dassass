@@ -43,7 +43,7 @@ function Profile() {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/profile', {
+      const response = await axios.get('https://dassass.onrender.com/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -65,7 +65,7 @@ function Profile() {
 
   const fetchOrganizers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/organizers');
+      const response = await axios.get('https://dassass.onrender.com/api/organizers');
       setOrganizers(response.data.organizers || []);
     } catch (err) {
       console.error('Failed to fetch organizers');
@@ -103,7 +103,7 @@ function Profile() {
 
     try {
       const response = await axios.put(
-        'http://localhost:5000/api/auth/profile',
+        'https://dassass.onrender.com/api/auth/profile',
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -138,7 +138,7 @@ function Profile() {
 
     try {
       await axios.put(
-        'http://localhost:5000/api/auth/change-password',
+        'https://dassass.onrender.com/api/auth/change-password',
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword
@@ -159,7 +159,7 @@ function Profile() {
     const token = localStorage.getItem('token');
     try {
       await axios.post(
-        `http://localhost:5000/api/auth/follow/${organizerId}`,
+        `https://dassass.onrender.com/api/auth/follow/${organizerId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -173,7 +173,7 @@ function Profile() {
     const token = localStorage.getItem('token');
     try {
       await axios.delete(
-        `http://localhost:5000/api/auth/follow/${organizerId}`,
+        `https://dassass.onrender.com/api/auth/follow/${organizerId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchProfile();

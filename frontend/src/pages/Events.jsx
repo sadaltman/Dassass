@@ -40,7 +40,7 @@ function Events() {
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       
       const response = await axios.get(
-        `http://localhost:5000/api/events?${params.toString()}`,
+        `https://dassass.onrender.com/api/events?${params.toString()}`,
         config
       );
       setEvents(response.data.events || []);
@@ -53,7 +53,7 @@ function Events() {
 
   const fetchTrending = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/events/trending');
+      const response = await axios.get('https://dassass.onrender.com/api/events/trending');
       setTrendingEvents(response.data.events || []);
     } catch (err) {
       console.error('Failed to fetch trending');

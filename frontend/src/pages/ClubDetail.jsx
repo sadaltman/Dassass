@@ -19,7 +19,7 @@ function ClubDetail() {
 
   const fetchOrganizerDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/organizers/${id}`);
+      const response = await axios.get(`https://dassass.onrender.com/api/organizers/${id}`);
       setOrganizer(response.data.organizer);
       setEvents(response.data.events || []);
       setLoading(false);
@@ -38,7 +38,7 @@ function ClubDetail() {
     const token = localStorage.getItem('token');
     try {
       await axios.post(
-        `http://localhost:5000/api/auth/follow/${id}`,
+        `https://dassass.onrender.com/api/auth/follow/${id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +53,7 @@ function ClubDetail() {
     const token = localStorage.getItem('token');
     try {
       await axios.delete(
-        `http://localhost:5000/api/auth/follow/${id}`,
+        `https://dassass.onrender.com/api/auth/follow/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('Unfollowed');

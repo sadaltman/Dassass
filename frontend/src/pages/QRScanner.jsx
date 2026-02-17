@@ -38,7 +38,7 @@ function QRScanner() {
   const fetchOrganizerEvents = async () => {
     const token = localStorage.getItem('organizerToken');
     try {
-      const response = await axios.get('http://localhost:5000/api/events/my-events', {
+      const response = await axios.get('https://dassass.onrender.com/api/events/my-events', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(response.data.events || []);
@@ -55,7 +55,7 @@ function QRScanner() {
     
     const token = localStorage.getItem('organizerToken');
     try {
-      const response = await axios.get(`http://localhost:5000/api/registrations/event/${eventId}`, {
+      const response = await axios.get(`https://dassass.onrender.com/api/registrations/event/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const regs = response.data.registrations || [];
@@ -261,7 +261,7 @@ function QRScanner() {
     
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/registrations/validate-qr',
+        'https://dassass.onrender.com/api/registrations/validate-qr',
         { ticketId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -290,7 +290,7 @@ function QRScanner() {
     
     try {
       await axios.post(
-        `http://localhost:5000/api/registrations/${registrationId}/attendance`,
+        `https://dassass.onrender.com/api/registrations/${registrationId}/attendance`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -316,7 +316,7 @@ function QRScanner() {
     
     try {
       await axios.post(
-        `http://localhost:5000/api/registrations/${registrationId}/attendance`,
+        `https://dassass.onrender.com/api/registrations/${registrationId}/attendance`,
         { manualOverride: true, reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );

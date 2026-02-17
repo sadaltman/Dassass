@@ -25,7 +25,7 @@ function Dashboard() {
     const token = localStorage.getItem('token');
     
     try {
-      const response = await axios.get('http://localhost:5000/api/registrations/my-registrations', {
+      const response = await axios.get('https://dassass.onrender.com/api/registrations/my-registrations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRegistrations(response.data.registrations || []);
@@ -40,7 +40,7 @@ function Dashboard() {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/registrations/${regId}/calendar`,
+        `https://dassass.onrender.com/api/registrations/${regId}/calendar`,
         { 
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob'

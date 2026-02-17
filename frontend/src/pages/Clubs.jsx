@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../utils/api';
 
 function Clubs() {
   const { isAuthenticated, user } = useContext(AuthContext);
@@ -17,7 +17,7 @@ function Clubs() {
 
   const fetchOrganizers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/organizers');
+      const response = await api.get('/organizers');
       setOrganizers(response.data.organizers || []);
       setLoading(false);
     } catch (err) {
@@ -32,13 +32,8 @@ function Clubs() {
       return;
     }
     
-    const token = localStorage.getItem('token');
     try {
-      await axios.post(
-        `http://localhost:5000/api/auth/follow/${organizerId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/auth/follow/${organizerId}`);
       alert('Now following!');
       window.location.reload();
     } catch (err) {
@@ -47,12 +42,8 @@ function Clubs() {
   };
 
   const handleUnfollow = async (organizerId) => {
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(
-        `http://localhost:5000/api/auth/follow/${organizerId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/auth/follow/${organizerId}`);
       alert('Unfollowed');
       window.location.reload();
     } catch (err) {

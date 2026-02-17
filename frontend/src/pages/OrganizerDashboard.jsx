@@ -18,7 +18,7 @@ function OrganizerDashboard() {
     }
 
     // Fetch organizer profile
-    axios.get('http://localhost:5000/api/organizers/profile', {
+    axios.get('https://dassass.onrender.com/api/organizers/profile', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -33,7 +33,7 @@ function OrganizerDashboard() {
     });
 
     // Fetch organizer's events only
-    axios.get('http://localhost:5000/api/events/my-events', {
+    axios.get('https://dassass.onrender.com/api/events/my-events', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {

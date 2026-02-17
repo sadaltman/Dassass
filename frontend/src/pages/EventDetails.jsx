@@ -50,7 +50,7 @@ function EventDetails() {
   const checkRegistration = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('http://localhost:5000/api/registrations/my-registrations', {
+      const response = await axios.get('https://dassass.onrender.com/api/registrations/my-registrations', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const regs = response.data.registrations || [];
@@ -64,7 +64,7 @@ function EventDetails() {
   const fetchMessages = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get(`http://localhost:5000/api/events/${id}/messages`, {
+      const response = await axios.get(`https://dassass.onrender.com/api/events/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(response.data.messages || []);
@@ -125,7 +125,7 @@ function EventDetails() {
       }
 
       await axios.post(
-        `http://localhost:5000/api/registrations/events/${id}`,
+        `https://dassass.onrender.com/api/registrations/events/${id}`,
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -149,7 +149,7 @@ function EventDetails() {
     const token = localStorage.getItem('token');
     try {
       await axios.post(
-        `http://localhost:5000/api/events/${id}/messages`,
+        `https://dassass.onrender.com/api/events/${id}/messages`,
         { message: newMessage },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -56,7 +56,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -73,7 +73,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/registrations/event/${id}`,
+        `https://dassass.onrender.com/api/registrations/event/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -88,7 +88,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/organizers/analytics`,
+        `https://dassass.onrender.com/api/organizers/analytics`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAnalytics(response.data);
@@ -144,7 +144,7 @@ function ManageEvent() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { status: 'published' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -161,7 +161,7 @@ function ManageEvent() {
     
     try {
       await axios.put(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -180,7 +180,7 @@ function ManageEvent() {
     
     try {
       await axios.delete(
-        `http://localhost:5000/api/events/${id}`,
+        `https://dassass.onrender.com/api/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
