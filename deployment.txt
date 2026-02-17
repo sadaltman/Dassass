@@ -1,0 +1,195 @@
+Felicity Event Management System - Deployment Guide
+=====================================================
+
+PREREQUISITES
+-------------
+- Node.js v16 or higher
+- MongoDB (local installation or MongoDB Atlas account)
+- npm (comes with Node.js)
+- Git
+
+STEP 1: Clone/Download Project
+------------------------------
+If using Git:
+  git clone <repository-url>
+  cd felicity-event-management
+
+Or extract the zip file to a folder.
+
+STEP 2: Backend Setup
+---------------------
+1. Navigate to backend folder:
+   cd backend
+
+2. Install dependencies:
+   npm install
+
+3. Create environment file (.env):
+   Create a file named ".env" in the backend folder with:
+   
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/felicity
+   JWT_SECRET=your_secret_key_here_make_it_long_and_random
+   EMAIL_USER=your.email@gmail.com
+   EMAIL_PASS=your_app_specific_password
+
+   Note: For EMAIL_PASS with Gmail:
+   - Enable 2FA on your Google account
+   - Go to Security > App passwords
+   - Generate a new app password for "Mail"
+   - Use that 16-character password
+
+   For MongoDB Atlas:
+   - Replace MONGODB_URI with your Atlas connection string
+   - Example: mongodb+srv://username:password@cluster.mongodb.net/felicity
+
+4. Create admin account:
+   node scripts/createAdmin.js
+   
+   This will output the admin credentials. Save them!
+
+5. Start the backend server:
+   node server.js
+
+   You should see:
+   "Server running on port 5000"
+   "MongoDB Connected: localhost"
+
+STEP 3: Frontend Setup
+----------------------
+1. Open new terminal and navigate to frontend:
+   cd frontend
+
+2. Install dependencies:
+   npm install
+
+3. Start the development server:
+   npm run dev
+
+   You should see:
+   "VITE v4.x.x ready in xxx ms"
+   "Local: http://localhost:5173/"
+
+4. Open browser and go to: http://localhost:5173
+
+STEP 4: Test the Application
+----------------------------
+1. Admin Login:
+   - Go to /admin/login
+   - Use credentials from createAdmin.js output
+
+2. Create an Organizer:
+   - In Admin Dashboard, fill the form
+   - Note the credentials shown
+
+3. Organizer Login:
+   - Go to /organizer/login
+   - Use organizer credentials
+
+4. Create an Event:
+   - Click "Create New Event"
+   - Fill form and save as draft
+   - Click "Publish" to make it visible
+
+5. Participant Registration:
+   - Go to /signup
+   - Register with an IIIT email (or modify validation)
+   - Login at /login
+
+6. Register for Event:
+   - Browse events
+   - Click on event, then "Register"
+   - Check QR ticket in "My Registrations"
+
+PRODUCTION DEPLOYMENT
+---------------------
+For production deployment (optional):
+
+Backend (e.g., Render, Railway, Heroku):
+1. Push code to GitHub
+2. Connect repository to hosting platform
+3. Set environment variables in platform dashboard
+4. Deploy
+
+Frontend (e.g., Vercel, Netlify):
+1. Update API base URL in frontend/src/utils/api.js:
+   Change: const API_BASE_URL = 'http://localhost:5000/api'
+   To: const API_BASE_URL = 'https://your-backend-url.com/api'
+
+2. Build frontend:
+   npm run build
+
+3. Deploy dist folder to hosting platform
+
+COMMON ISSUES & SOLUTIONS
+-------------------------
+Issue: "MongoDB Connection Error"
+Solution: 
+- Check MongoDB is running: mongod --version
+- For Atlas, check IP whitelist includes your IP
+- Verify connection string format
+
+Issue: "CORS Error"
+Solution:
+- Backend already has CORS enabled
+- Check API_BASE_URL matches backend URL
+
+Issue: "Email not sending"
+Solution:
+- Check EMAIL_USER and EMAIL_PASS in .env
+- For Gmail, ensure App Password is correct
+- Check spam folder for test emails
+
+Issue: "JWT Token Invalid"
+Solution:
+- Clear localStorage in browser
+- Ensure JWT_SECRET in .env is set
+- Re-login
+
+Issue: "Port already in use"
+Solution:
+- Change PORT in .env
+- Or kill existing process: kill -9 $(lsof -t -i:5000)
+
+DEVELOPMENT COMMANDS
+--------------------
+Backend:
+  npm start          - Start server
+  node server.js     - Start server (alternative)
+
+Frontend:
+  npm run dev        - Start dev server
+  npm run build      - Build for production
+  npm run preview    - Preview production build
+
+DATABASE MANAGEMENT
+-------------------
+To reset database:
+  mongosh
+  use felicity
+  db.dropDatabase()
+  exit
+  node scripts/createAdmin.js
+
+To backup database:
+  mongodump --db felicity --out ./backup
+
+To restore database:
+  mongorestore --db felicity ./backup/felicity
+
+ENVIRONMENT VARIABLES REFERENCE
+-------------------------------
+Backend (.env):
+  PORT             - Server port (default: 5000)
+  MONGODB_URI      - MongoDB connection string
+  JWT_SECRET       - Secret for JWT signing
+  EMAIL_USER       - Email address for sending tickets
+  EMAIL_PASS       - Email password (app-specific for Gmail)
+
+CONTACT
+-------
+For issues, refer to README.md or check:
+- MongoDB docs: https://docs.mongodb.com
+- Express docs: https://expressjs.com
+- React docs: https://react.dev
+- Tailwind docs: https://tailwindcss.com

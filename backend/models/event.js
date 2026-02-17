@@ -1,0 +1,79 @@
+const mongoose = require('mongoose');
+
+const eventSchema = new mongoose.Schema({
+    name:{
+        type:String,
+        required:true
+    },
+    description:{
+        type:String,
+        required:true
+    },
+    eventType:{
+        type:String,
+        enum:['normal','merchandise'],
+        required:true
+    },
+    organizerId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Organizer',
+        required:true
+    },
+    eligibility:{
+        type:String,
+        enum:['iiit-only','all'],
+        default:'all'
+    },
+    regDeadline:{
+        type:Date,
+        required:true
+    },
+    startDate:{
+        type:Date,
+        required:true
+    },
+    endDate:{
+        type:Date,
+        required:true
+    },
+    regLimit:{
+        type:Number,
+        default:0
+    },
+    regFee:{
+        type:Number,
+        default:0
+    },
+    tags:[{
+        type:String
+    }],
+    status:{
+        type:String,
+        enum:['draft','published','ongoing','completed','closed'],
+        default:'draft'
+    },
+    customForm:{
+        type:Object,
+        default:{}
+    },
+    merchDetails:{
+        variants:[{
+            name:String,
+            price:Number,
+            stock:Number,
+            attributes:Object
+        }],
+        purchaseLimit:{
+            type:Number,
+            default:1
+        }
+    },
+    currentRegistrations:{
+        type:Number,
+        default:0
+    }
+},{
+    timestamps:true
+});
+
+module.exports = mongoose.model('Event',eventSchema);
