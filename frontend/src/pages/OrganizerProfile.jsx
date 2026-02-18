@@ -10,6 +10,7 @@ function OrganizerProfile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
+  const [loginEmail, setLoginEmail] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -17,12 +18,6 @@ function OrganizerProfile() {
     publicContactEmail: '',
     phoneNumber: '',
     webhookUrl: ''
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
   });
 
   useEffect(() => {
@@ -42,6 +37,7 @@ function OrganizerProfile() {
       });
       
       const org = response.data.organizer;
+      setLoginEmail(org.loginEmail || '');
       setFormData({
         name: org.name || '',
         category: org.category || '',
@@ -83,44 +79,6 @@ function OrganizerProfile() {
       setSaving(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
-      setSaving(false);
-    }
-  };
-
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setSaving(true);
-    setError('');
-    setSuccess('');
-
-    const token = localStorage.getItem('organizerToken');
-
-    try {
-      await axios.put(
-        'https://dassass.onrender.com/api/organizers/change-password',
-        {
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      setSuccess('Password changed successfully!');
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setSaving(false);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change password');
       setSaving(false);
     }
   };
@@ -203,6 +161,18 @@ function OrganizerProfile() {
         {/* Profile Info */}
         <div className="border-2 border-black p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">Organization Information</h2>
+          
+          {loginEmail && (
+            <div className="mb-4">
+              <label className="block font-bold mb-2">Login Email (non-editable)</label>
+              <input
+                type="email"
+                value={loginEmail}
+                disabled
+                className="w-full border-2 border-gray-300 bg-gray-100 p-2 text-gray-600 cursor-not-allowed"
+              />
+            </div>
+          )}
           
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -293,63 +263,19 @@ function OrganizerProfile() {
           </form>
         </div>
 
-        {/* Change Password */}
+        {/* Password Reset */}
         <div className="border-2 border-black p-6">
-          <h2 className="text-xl font-bold mb-4">Change Password</h2>
-          
-          <form onSubmit={handlePasswordChange}>
-            <div className="mb-4">
-              <label className="block font-bold mb-2">Current Password</label>
-              <input
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                className="w-full border-2 border-black p-2"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block font-bold mb-2">New Password</label>
-              <input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                className="w-full border-2 border-black p-2"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block font-bold mb-2">Confirm New Password</label>
-              <input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                className="w-full border-2 border-black p-2"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 disabled:bg-gray-400"
-            >
-              {saving ? 'Changing...' : 'Change Password'}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-300">
-            <h3 className="font-bold mb-2">Forgot Current Password?</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Request a password reset. An admin will review and approve your request.
-            </p>
-            <button
-              onClick={handleRequestPasswordReset}
-              type="button"
-              className="px-4 py-2 border-2 border-black hover:bg-gray-100"
-            >
-              Request Password Reset
-            </button>
-          </div>
+          <h2 className="text-xl font-bold mb-4">Password Management</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Password changes are managed by the admin. Submit a request below and an admin will review it.
+          </p>
+          <button
+            onClick={handleRequestPasswordReset}
+            type="button"
+            className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-800"
+          >
+            Request Password Reset from Admin
+          </button>
         </div>
       </div>
     </div>

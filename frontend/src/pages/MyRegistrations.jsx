@@ -43,6 +43,36 @@ function MyRegistrations() {
     }
   };
 
+  const getGoogleCalendarUrl = (event) => {
+    if (!event) return '#';
+    const start = new Date(event.startDate).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const end = new Date(event.endDate || event.startDate).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: event.name || '',
+      dates: `${start}/${end}`,
+      details: event.description || '',
+      location: event.venue || ''
+    });
+    return `https://calendar.google.com/calendar/r/eventedit?${params.toString()}`;
+  };
+
+  const getOutlookCalendarUrl = (event) => {
+    if (!event) return '#';
+    const start = new Date(event.startDate).toISOString();
+    const end = new Date(event.endDate || event.startDate).toISOString();
+    const params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: event.name || '',
+      startdt: start,
+      enddt: end,
+      body: event.description || '',
+      location: event.venue || ''
+    });
+    return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -116,8 +146,28 @@ function MyRegistrations() {
                       onClick={() => handleAddToCalendar(reg._id, reg.eventId.name)}
                       className="px-3 py-1 border-2 border-black hover:bg-gray-100 text-sm"
                     >
-                      📅 Add to Calendar
+                      Download .ics
                     </button>
+                  )}
+                  {reg.eventId && (
+                    <a
+                      href={getGoogleCalendarUrl(reg.eventId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 border-2 border-black hover:bg-gray-100 text-sm"
+                    >
+                      Google Calendar
+                    </a>
+                  )}
+                  {reg.eventId && (
+                    <a
+                      href={getOutlookCalendarUrl(reg.eventId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 border-2 border-black hover:bg-gray-100 text-sm"
+                    >
+                      Outlook Calendar
+                    </a>
                   )}
                 </div>
               </div>

@@ -23,7 +23,10 @@ function EventDetails() {
   // For discussion forum
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isOrganizer, setIsOrganizer] = useState(false);
 
   useEffect(() => {
     fetchEvent();
@@ -33,6 +36,14 @@ function EventDetails() {
     if (event && isAuthenticated) {
       checkRegistration();
       fetchMessages();
+    }
+    // Check if current user is the organizer
+    if (event) {
+      const orgToken = localStorage.getItem('organizerToken');
+      if (orgToken) {
+        setIsOrganizer(true);
+        fetchMessages(orgToken);
+      }
     }
   }, [event, isAuthenticated]);
 
@@ -61,8 +72,9 @@ function EventDetails() {
     }
   };
 
-  const fetchMessages = async () => {
-    const token = localStorage.getItem('token');
+  const fetchMessages = async (orgToken) => {
+    const token = orgToken || localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    if (!token) return;
     try {
       const response = await axios.get(`https://dassass.onrender.com/api/events/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -146,7 +158,7 @@ function EventDetails() {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
     try {
       await axios.post(
         `https://dassass.onrender.com/api/events/${id}/messages`,
@@ -157,6 +169,38 @@ function EventDetails() {
       fetchMessages();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to post message');
+    }
+  };
+
+  const handleReply = async (parentId) => {
+    if (!replyText.trim()) return;
+
+    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    try {
+      await axios.post(
+        `https://dassass.onrender.com/api/events/${id}/messages`,
+        { message: replyText, parentId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReplyText('');
+      setReplyTo(null);
+      fetchMessages();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to post reply');
+    }
+  };
+
+  const handleReaction = async (messageId, emoji) => {
+    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    try {
+      await axios.post(
+        `https://dassass.onrender.com/api/messages/${messageId}/react`,
+        { emoji },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchMessages();
+    } catch (err) {
+      console.error('Failed to react');
     }
   };
 
@@ -437,7 +481,7 @@ function EventDetails() {
         </div>
 
         {/* Discussion Forum */}
-        {isRegistered && (
+        {(isRegistered || isOrganizer) && (
           <div className="border-2 border-black p-6">
             <h2 className="text-2xl font-bold mb-4">Discussion Forum</h2>
             
@@ -461,13 +505,84 @@ function EventDetails() {
               <p className="text-gray-600">No messages yet. Be the first to post!</p>
             ) : (
               <div className="space-y-3">
-                {messages.map(msg => (
-                  <div key={msg._id} className={`border-2 p-3 ${msg.pinned ? 'border-yellow-500 bg-yellow-50' : 'border-black'}`}>
-                    {msg.pinned && <span className="text-xs text-yellow-700 font-bold">📌 PINNED</span>}
-                    <p className="text-sm text-gray-600">
-                      {msg.userId?.firstName} {msg.userId?.lastName} • {new Date(msg.createdAt).toLocaleString()}
-                    </p>
-                    <p>{msg.message}</p>
+                {/* Show top-level messages (no parentId) */}
+                {messages.filter(m => !m.parentId).map(msg => (
+                  <div key={msg._id}>
+                    <div className={`border-2 p-3 ${msg.pinned ? 'border-yellow-500 bg-yellow-50' : 'border-black'}`}>
+                      {msg.pinned && <span className="text-xs text-yellow-700 font-bold">PINNED</span>}
+                      <p className="text-sm text-gray-600">
+                        {msg.userId?.firstName || msg.organizerId?.name || 'Unknown'} {msg.userId?.lastName || ''} 
+                        {msg.organizerId && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
+                        {' '} • {new Date(msg.createdAt).toLocaleString()}
+                      </p>
+                      <p className="my-2">{msg.message}</p>
+                      
+                      {/* Reactions */}
+                      <div className="flex items-center gap-2 mt-2">
+                        {['👍', '❤️', '🎉', '😂'].map(emoji => {
+                          const count = (msg.reactions || []).filter(r => r.emoji === emoji).length;
+                          return (
+                            <button
+                              key={emoji}
+                              onClick={() => handleReaction(msg._id, emoji)}
+                              className={`px-2 py-0.5 border text-sm hover:bg-gray-100 ${count > 0 ? 'border-black bg-gray-50' : 'border-gray-300'}`}
+                            >
+                              {emoji} {count > 0 && count}
+                            </button>
+                          );
+                        })}
+                        <button
+                          onClick={() => setReplyTo(replyTo === msg._id ? null : msg._id)}
+                          className="px-2 py-0.5 border border-gray-300 text-sm hover:bg-gray-100 ml-auto"
+                        >
+                          Reply
+                        </button>
+                      </div>
+
+                      {/* Reply form */}
+                      {replyTo === msg._id && (
+                        <div className="mt-2 ml-4">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write a reply..."
+                            className="w-full border-2 border-black p-2 text-sm"
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleReply(msg._id); } }}
+                          />
+                          <div className="flex gap-2 mt-1">
+                            <button onClick={() => handleReply(msg._id)} className="px-3 py-1 bg-black text-white text-sm">Reply</button>
+                            <button onClick={() => { setReplyTo(null); setReplyText(''); }} className="px-3 py-1 border border-black text-sm">Cancel</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Replies (threaded) */}
+                    {messages.filter(r => r.parentId === msg._id).map(reply => (
+                      <div key={reply._id} className="ml-8 mt-1 border-2 border-gray-400 p-3 bg-gray-50">
+                        <p className="text-sm text-gray-600">
+                          {reply.userId?.firstName || reply.organizerId?.name || 'Unknown'} {reply.userId?.lastName || ''}
+                          {reply.organizerId && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
+                          {' '} • {new Date(reply.createdAt).toLocaleString()}
+                        </p>
+                        <p className="my-1">{reply.message}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {['👍', '❤️', '🎉', '😂'].map(emoji => {
+                            const count = (reply.reactions || []).filter(r => r.emoji === emoji).length;
+                            return (
+                              <button
+                                key={emoji}
+                                onClick={() => handleReaction(reply._id, emoji)}
+                                className={`px-2 py-0.5 border text-xs hover:bg-gray-100 ${count > 0 ? 'border-black bg-white' : 'border-gray-300'}`}
+                              >
+                                {emoji} {count > 0 && count}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>

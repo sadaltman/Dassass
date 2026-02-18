@@ -34,6 +34,10 @@ const organizerSchema = new mongoose.Schema({
     active: {
         type: Boolean,
         default: true
+    },
+    archived: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

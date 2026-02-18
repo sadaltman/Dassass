@@ -1,4 +1,4 @@
-// Edit Event Form - Only for Draft events (free edits)
+// Edit Event Form - Draft events get full edits, Published events get limited edits
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -60,9 +60,9 @@ function EditEvent() {
       const event = response.data.event;
       setEventStatus(event.status);
       
-      // Only allow full editing for draft events
-      if (event.status !== 'draft') {
-        alert('Only draft events can be fully edited. For published events, only limited changes are allowed.');
+      // Only draft and published events can be edited
+      if (event.status !== 'draft' && event.status !== 'published') {
+        alert('Only draft and published events can be edited.');
         navigate(`/organizer/events/${id}`);
         return;
       }
@@ -284,7 +284,15 @@ function EditEvent() {
       </nav>
       
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Edit Event (Draft)</h1>
+        <h1 className="text-3xl font-bold mb-6">
+          Edit Event {eventStatus === 'published' ? '(Published — Limited Edits)' : '(Draft)'}
+        </h1>
+        
+        {eventStatus === 'published' && (
+          <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-800 p-3 mb-4">
+            This event is published. You can only edit the description, registration deadline, and registration limit.
+          </div>
+        )}
         
         {error && (
           <div className="bg-red-100 border-2 border-red-500 text-red-700 p-3 mb-4">
@@ -306,7 +314,8 @@ function EditEvent() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full border-2 border-black p-2"
+                disabled={eventStatus === 'published'}
+                className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -329,7 +338,8 @@ function EditEvent() {
                   name="eventType"
                   value={formData.eventType}
                   onChange={handleChange}
-                  className="w-full border-2 border-black p-2"
+                  disabled={eventStatus === 'published'}
+                  className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <option value="normal">Normal Event</option>
                   <option value="merchandise">Event with Merchandise</option>
@@ -342,7 +352,8 @@ function EditEvent() {
                   name="eligibility"
                   value={formData.eligibility}
                   onChange={handleChange}
-                  className="w-full border-2 border-black p-2"
+                  disabled={eventStatus === 'published'}
+                  className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   <option value="all">All</option>
                   <option value="iiit-only">IIIT Only</option>
@@ -376,7 +387,8 @@ function EditEvent() {
                   value={formData.startDate}
                   onChange={handleChange}
                   required
-                  className="w-full border-2 border-black p-2"
+                  disabled={eventStatus === 'published'}
+                  className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -388,7 +400,8 @@ function EditEvent() {
                   value={formData.endDate}
                   onChange={handleChange}
                   required
-                  className="w-full border-2 border-black p-2"
+                  disabled={eventStatus === 'published'}
+                  className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -420,7 +433,8 @@ function EditEvent() {
                   onChange={handleChange}
                   min="0"
                   step="0.01"
-                  className="w-full border-2 border-black p-2"
+                  disabled={eventStatus === 'published'}
+                  className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -433,12 +447,14 @@ function EditEvent() {
                 value={formData.tags}
                 onChange={handleChange}
                 placeholder="tech, music, sports"
-                className="w-full border-2 border-black p-2"
+                disabled={eventStatus === 'published'}
+                className="w-full border-2 border-black p-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
               />
             </div>
           </div>
 
-          {/* Merchandise */}
+          {/* Merchandise - only for draft events */}
+          {eventStatus === 'draft' && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Merchandise (Optional)</h2>
             
@@ -516,8 +532,10 @@ function EditEvent() {
               </div>
             )}
           </div>
+          )}
 
-          {/* Custom Registration Form Builder */}
+          {/* Custom Registration Form Builder - only for draft events */}
+          {eventStatus === 'draft' && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Custom Registration Fields</h2>
             <p className="text-gray-600 mb-4">Add custom fields to collect additional information during registration. You can reorder fields using the arrow buttons.</p>
@@ -629,6 +647,7 @@ function EditEvent() {
               + Add Custom Field
             </button>
           </div>
+          )}
 
           {/* Submit */}
           <div className="flex gap-4">

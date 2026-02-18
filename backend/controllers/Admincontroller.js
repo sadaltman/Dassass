@@ -53,24 +53,27 @@ const login = async (req, res) => {
 
 const createOrganizer = async (req, res) => {
     try {
-        const { name, loginEmail, password, category } = req.body;
+        const { name, category } = req.body;
 
-        if (!name || !loginEmail || !password || !category) {
+        if (!name || !category) {
             return res.status(400).json({
                 success: false,
-                message: 'All fields required: name, login email, password, category'
+                message: 'All fields required: name, category'
             });
         }
 
-        const existing = await organiser.findOne({ loginEmail });
-        if (existing) {
-            return res.status(409).json({
-                success: false,
-                message: 'Organizer with this email already exists'
-            });
+        // Auto-generate login email from name
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
+        let loginEmail = `${slug}@felicity.club`;
+        let counter = 1;
+        while (await organiser.findOne({ loginEmail })) {
+            loginEmail = `${slug}${counter}@felicity.club`;
+            counter++;
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Auto-generate a secure password
+        const generatedPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-4).toUpperCase();
+        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
         const neworg = new organiser({
             name,
@@ -93,7 +96,7 @@ const createOrganizer = async (req, res) => {
             },
             credentials: {
                 loginEmail: neworg.loginEmail,
-                password: password
+                password: generatedPassword
             }
         });
     } catch (err) {
@@ -310,4 +313,29 @@ const rejectPasswordReset = async (req,res) =>{
     }
 };
 
-module.exports = { login, createOrganizer, deleteOrganizer, listOrganizers, toggleOrganizerStatus,getPasswordResets,approvePasswordReset,rejectPasswordReset };
+const archiveOrganizer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const org = await organiser.findById(id);
+        if (!org) {
+            return res.status(404).json({
+                success: false,
+                message: 'Organizer not found'
+            });
+        }
+        
+        org.archived = !org.archived;
+        if (org.archived) org.active = false;
+        await org.save();
+        
+        return res.json({
+            success: true,
+            message: org.archived ? 'Organizer archived' : 'Organizer unarchived',
+            organizer: { id: org._id, name: org.name, archived: org.archived, active: org.active }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+module.exports = { login, createOrganizer, deleteOrganizer, listOrganizers, toggleOrganizerStatus, archiveOrganizer, getPasswordResets, approvePasswordReset, rejectPasswordReset };

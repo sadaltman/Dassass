@@ -35,8 +35,8 @@ function Login() {
       // Save token and user data
       login(data.token, data.user);
       
-      // Redirect to home page
-      navigate('/');
+      // Redirect to participant dashboard
+      navigate('/dashboard');
       
     } catch (err) {
       // Show error message from backend

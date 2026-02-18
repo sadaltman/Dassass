@@ -34,6 +34,21 @@ const autoUpdateEventStatus = async (event) => {
     return event;
 };
 
+// Helper to score event relevance based on user preferences
+const calcRelevance = (event, userInterests, followedIds) => {
+    let score = 0;
+    const tags = (event.tags || []).map(t => t.toLowerCase());
+    const eventType = (event.eventType || '').toLowerCase();
+    for (const interest of userInterests) {
+        if (tags.includes(interest)) score += 2;
+        if (eventType === interest) score += 1;
+        if (event.name && event.name.toLowerCase().includes(interest)) score += 1;
+    }
+    const orgId = event.organizerId?._id?.toString() || event.organizerId?.toString();
+    if (orgId && followedIds.includes(orgId)) score += 3;
+    return score;
+};
+
 const createEvent = async (req,res) =>{
     try{
         const {name,description,eventType,eligibility,regDeadline,startDate,endDate,regLimit,regFee,tags,customForm,merchDetails} = req.body;
@@ -90,9 +105,23 @@ const getAllEvents = async (req,res) =>{
         if(eventType) filter.eventType = eventType;
         if(eligibility) filter.eligibility = eligibility;
         if(search){
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const fuzzyPattern = escapedSearch.split('').join('.*');
+            
+            // Find organizers matching search term
+            const matchingOrgs = await organiser.find({
+                $or: [
+                    {name: {$regex: search, $options: 'i'}},
+                    {name: {$regex: fuzzyPattern, $options: 'i'}}
+                ]
+            }).select('_id');
+            const orgIds = matchingOrgs.map(o => o._id);
+            
             filter.$or = [
                 {name:{$regex:search,$options:'i'}},
-                {description:{$regex:search,$options:'i'}}
+                {description:{$regex:search,$options:'i'}},
+                {name:{$regex:fuzzyPattern,$options:'i'}},
+                {organizerId:{$in:orgIds}}
             ];
         }
         if(startDate){
@@ -120,11 +149,33 @@ const getAllEvents = async (req,res) =>{
             }
             return event;
         }));
+
+        // Preference-based ordering: prioritize events matching user interests/followed clubs
+        let sortedEvents = updatedEvents;
+        if (req.userInfo) {
+            try {
+                const currentUser = await User.findById(req.userInfo.userId);
+                if (currentUser) {
+                    const userInterests = (currentUser.interests || []).map(i => i.toLowerCase());
+                    const followedIds = (currentUser.followedClubs || []).map(id => id.toString());
+                    if (userInterests.length > 0 || followedIds.length > 0) {
+                        sortedEvents = [...updatedEvents].sort((a, b) => {
+                            const scoreA = calcRelevance(a, userInterests, followedIds);
+                            const scoreB = calcRelevance(b, userInterests, followedIds);
+                            if (scoreB !== scoreA) return scoreB - scoreA;
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                        });
+                    }
+                }
+            } catch (e) {
+                // If user lookup fails, keep default ordering
+            }
+        }
         
         res.json({
             success:true,
-            count:updatedEvents.length,
-            events: updatedEvents
+            count:sortedEvents.length,
+            events: sortedEvents
         });
     }
     catch(err){
@@ -183,6 +234,10 @@ const updateEvent = async (req,res) =>{
         const {status,description,regDeadline,regLimit} = req.body;
         
         if(event.status === 'draft'){
+            // Lock custom form if event has registrations
+            if(event.currentRegistrations > 0 && req.body.customForm){
+                delete req.body.customForm;
+            }
             Object.assign(event,req.body);
         }
         else if(event.status === 'published'){

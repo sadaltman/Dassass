@@ -15,6 +15,20 @@ const eventMessageSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    parentId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'EventMessage',
+        default:null
+    },
+    reactions:[{
+        userId:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'User'
+        },
+        emoji:{
+            type:String
+        }
+    }],
     pinned:{
         type:Boolean,
         default:false

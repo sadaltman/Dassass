@@ -126,49 +126,6 @@ const updateProfile = async (req,res) =>{
     }
 };
 
-const changePassword = async (req,res) =>{
-    try{
-        const {currentPassword,newPassword} = req.body;
-        
-        if(!currentPassword || !newPassword){
-            return res.status(400).json({
-                success:false,
-                message:'Current and new password required'
-            });
-        }
-        
-        const org = await organiser.findById(req.userInfo.userId);
-        if(!org){
-            return res.status(404).json({
-                success:false,
-                message:'Organizer not found'
-            });
-        }
-        
-        const match = await bcrypt.compare(currentPassword,org.hashedPassword);
-        if(!match){
-            return res.status(401).json({
-                success:false,
-                message:'Current password incorrect'
-            });
-        }
-        
-        org.hashedPassword = await bcrypt.hash(newPassword,10);
-        await org.save();
-        
-        res.json({
-            success:true,
-            message:'Password changed successfully'
-        });
-    }
-    catch(err){
-        return res.status(500).json({
-            success:false,
-            message:'Server Error'
-        });
-    }
-};
-
 const getAllOrganizers = async (req,res) =>{
     try{
         const orgs = await organiser.find({active:true}).select('name category aboutText publicContactEmail phoneNumber');
@@ -261,20 +218,20 @@ const getAnalytics = async (req,res) =>{
         const organizerId = req.userInfo.userId;
         const events = await Event.find({organizerId});
         let revenue = 0;
-        let regs = 0;
+        let totalRegs = 0;
         let attend = 0;
         for(let evt of events){
-            const regs = await registration.find({eventId:evt._id});
-            regs += regs.length;
-            revenue += regs.length * evt.regFee;
-            attend += regs.filter(r => r.attended).length;
+            const eventRegs = await registration.find({eventId:evt._id});
+            totalRegs += eventRegs.length;
+            revenue += eventRegs.filter(r => r.paymentStatus === 'approved').length * evt.regFee;
+            attend += eventRegs.filter(r => r.attended).length;
         }
         
         res.json({
             success:true,
             analytics:{
                 totalEvents: events.length,
-                totalRegistrations: regs,
+                totalRegistrations: totalRegs,
                 totalRevenue: revenue,
                 totalAttended: attend,
                 events: events.map(e => ({
@@ -326,4 +283,4 @@ const requestPasswordReset = async (req,res) =>{
     }
 };
 
-module.exports = { login,getProfile,updateProfile,changePassword,getAllOrganizers,getOrganizerById,getEventCsv,getAnalytics,requestPasswordReset };
+module.exports = { login,getProfile,updateProfile,getAllOrganizers,getOrganizerById,getEventCsv,getAnalytics,requestPasswordReset };

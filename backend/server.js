@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const User = require('./models/user');
 const AuthRoutes = require('./routes/AuthRoutes');
 const OrganiserRoutes = require('./routes/OrganiserRoutes');
 const AdminRoutes = require('./routes/AdminRoutes');
@@ -45,28 +44,7 @@ app.get('/',(req,res) => {
     });
 });
 
-app.get('/api/test',(req,res) =>{
-    res.json({
-        success:true,
-        message: 'Api works'
-    });
-});
-app.get('/api/test-user', async (req, res) => {
-    try {
-        const testUser = new User({
-            firstName: 'Sahaj',
-            lastName: 'Test',
-            email: 'test@iiit.ac.in',
-            password: 'temp123',
-            role: 'participant',
-            participantType: 'iiit'
-        });
-        await testUser.save();
-        res.json({ success: true, user: testUser });
-    } catch (error) {
-        res.json({ success: false, error: error.message });
-    }
-});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT,()=>{

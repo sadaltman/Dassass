@@ -35,7 +35,11 @@ const userSchema = new mongoose.Schema({
     followedClubs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Organizer'
-    }]
+    }],
+    onboardingComplete: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true
 });

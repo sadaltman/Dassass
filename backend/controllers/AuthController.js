@@ -293,4 +293,44 @@ const unfollowOrganizer = async (req,res) =>{
     }
 };
 
-module.exports = { register,login,getProfile,updateProfile,changePassword,followOrganizer,unfollowOrganizer };
+const completeOnboarding = async (req,res) =>{
+    try{
+        const user = await User.findById(req.userInfo.userId);
+        if(!user){
+            return res.status(404).json({
+                success:false,
+                message:'User not found'
+            });
+        }
+        
+        const {interests,followedClubs} = req.body;
+        
+        if(interests && Array.isArray(interests)) user.interests = interests;
+        if(followedClubs && Array.isArray(followedClubs)) user.followedClubs = followedClubs;
+        user.onboardingComplete = true;
+        
+        await user.save();
+        
+        res.json({
+            success:true,
+            message:'Onboarding complete',
+            user:{
+                id:user._id,
+                firstName:user.firstName,
+                lastName:user.lastName,
+                email:user.email,
+                interests:user.interests,
+                followedClubs:user.followedClubs,
+                onboardingComplete:user.onboardingComplete
+            }
+        });
+    }
+    catch(err){
+        res.status(500).json({
+            success:false,
+            message:'Server error'
+        });
+    }
+};
+
+module.exports = { register,login,getProfile,updateProfile,changePassword,followOrganizer,unfollowOrganizer,completeOnboarding };

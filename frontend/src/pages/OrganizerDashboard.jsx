@@ -6,7 +6,7 @@ import axios from 'axios';
 function OrganizerDashboard() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [organizerName, setOrganizerName] = useState('');
 
@@ -48,6 +48,17 @@ function OrganizerDashboard() {
       }
       setLoading(false);
     });
+
+    // Fetch analytics
+    axios.get('https://dassass.onrender.com/api/organizers/analytics', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => {
+      setAnalytics(res.data.analytics);
+    })
+    .catch(err => {
+      console.error('Failed to fetch analytics:', err);
+    });
   }, [navigate]);
 
   const handleLogout = () => {
@@ -65,7 +76,25 @@ function OrganizerDashboard() {
             <h1 className="text-xl font-bold">Organizer Panel</h1>
             {organizerName && <p className="text-sm text-gray-300 mt-1">{organizerName}</p>}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Link
+              to="/organizer/dashboard"
+              className="px-4 py-2 border-2 border-white hover:bg-gray-800"
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/organizer/create-event"
+              className="px-4 py-2 border-2 border-white hover:bg-gray-800"
+            >
+              Create Event
+            </Link>
+            <Link
+              to="/organizer/my-events"
+              className="px-4 py-2 border-2 border-white hover:bg-gray-800"
+            >
+              Ongoing Events
+            </Link>
             <Link
               to="/organizer/profile"
               className="px-4 py-2 border-2 border-white hover:bg-gray-800"
@@ -84,6 +113,28 @@ function OrganizerDashboard() {
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+
+        {/* Analytics Overview */}
+        {analytics && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="border-2 border-black p-4 text-center">
+              <p className="text-3xl font-bold">{analytics.totalEvents}</p>
+              <p className="text-sm text-gray-600">Total Events</p>
+            </div>
+            <div className="border-2 border-black p-4 text-center">
+              <p className="text-3xl font-bold">{analytics.totalRegistrations}</p>
+              <p className="text-sm text-gray-600">Total Registrations</p>
+            </div>
+            <div className="border-2 border-black p-4 text-center">
+              <p className="text-3xl font-bold">₹{analytics.totalRevenue}</p>
+              <p className="text-sm text-gray-600">Total Revenue</p>
+            </div>
+            <div className="border-2 border-black p-4 text-center">
+              <p className="text-3xl font-bold">{analytics.totalAttended}</p>
+              <p className="text-sm text-gray-600">Total Attended</p>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-4 gap-4 mb-8">

@@ -73,8 +73,8 @@ function Signup() {
       // Save token and user data
       login(data.token, data.user);
       
-      // Redirect to home page
-      navigate('/');
+      // Redirect to onboarding page for new users
+      navigate('/onboarding');
       
     } catch (err) {
       // Show error message from backend

@@ -103,6 +103,17 @@ STEP 4: Test the Application
 
 PRODUCTION DEPLOYMENT
 ---------------------
+This application is deployed and live at:
+
+Frontend: https://dassasskjkjl.vercel.app
+Backend:  https://dassass.onrender.com
+
+Deployment Platforms:
+- Frontend is deployed on Vercel (auto-deploys from GitHub main branch)
+- Backend is deployed on Render (auto-deploys from GitHub main branch)
+
+GitHub Repository: https://github.com/sadaltman/Dassass
+
 For production deployment (optional):
 
 Backend (e.g., Render, Railway, Heroku):

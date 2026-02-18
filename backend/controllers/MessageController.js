@@ -5,7 +5,7 @@ const Registration = require('../models/registration');
 const postMessage = async (req,res) =>{
     try{
         const {eventId} = req.params;
-        const {message} = req.body;
+        const {message,parentId} = req.body;
         const userId = req.userInfo.userId;
         
         if(!message){
@@ -15,18 +15,23 @@ const postMessage = async (req,res) =>{
             });
         }
         
+        // Check if user is registered participant OR event organizer
+        const event = await Event.findById(eventId);
         const registration = await Registration.findOne({eventId,userId});
-        if(!registration){
+        const isOrganizer = event && event.organizerId.toString() === userId;
+        
+        if(!registration && !isOrganizer){
             return res.status(403).json({
                 success:false,
-                message:'Must be registered to post'
+                message:'Must be registered or organizer to post'
             });
         }
         
         const msg = new EventMessage({
             eventId,
             userId,
-            message
+            message,
+            parentId: parentId || null
         });
         
         await msg.save();
@@ -152,4 +157,52 @@ const pinMessage = async (req,res) =>{
     }
 };
 
-module.exports = {postMessage,getMessages,deleteMessage,pinMessage};
+const reactToMessage = async (req,res) =>{
+    try{
+        const {id} = req.params;
+        const {emoji} = req.body;
+        const userId = req.userInfo.userId;
+        
+        if(!emoji){
+            return res.status(400).json({
+                success:false,
+                message:'Emoji required'
+            });
+        }
+        
+        const msg = await EventMessage.findById(id);
+        if(!msg){
+            return res.status(404).json({
+                success:false,
+                message:'Message not found'
+            });
+        }
+        
+        // Toggle reaction: remove if exists, add if not
+        const existingIdx = msg.reactions.findIndex(
+            r => r.userId.toString() === userId && r.emoji === emoji
+        );
+        
+        if(existingIdx >= 0){
+            msg.reactions.splice(existingIdx,1);
+        } else {
+            msg.reactions.push({userId,emoji});
+        }
+        
+        await msg.save();
+        
+        res.json({
+            success:true,
+            message:'Reaction updated',
+            reactions:msg.reactions
+        });
+    }
+    catch(err){
+        res.status(500).json({
+            success:false,
+            message:'Server error'
+        });
+    }
+};
+
+module.exports = {postMessage,getMessages,deleteMessage,pinMessage,reactToMessage};
