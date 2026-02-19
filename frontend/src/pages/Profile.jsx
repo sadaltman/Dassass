@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function Profile() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ function Profile() {
     }
 
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/auth/profile', {
+      const response = await axios.get(`${API_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -65,7 +66,7 @@ function Profile() {
 
   const fetchOrganizers = async () => {
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/organizers');
+      const response = await axios.get(`${API_URL}/organizers`);
       setOrganizers(response.data.organizers || []);
     } catch (err) {
       console.error('Failed to fetch organizers');
@@ -103,7 +104,7 @@ function Profile() {
 
     try {
       const response = await axios.put(
-        'https://dassass.onrender.com/api/auth/profile',
+        `${API_URL}/auth/profile`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -138,7 +139,7 @@ function Profile() {
 
     try {
       await axios.put(
-        'https://dassass.onrender.com/api/auth/change-password',
+        `${API_URL}/auth/change-password`,
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword
@@ -159,7 +160,7 @@ function Profile() {
     const token = localStorage.getItem('token');
     try {
       await axios.post(
-        `https://dassass.onrender.com/api/auth/follow/${organizerId}`,
+        `${API_URL}/auth/follow/${organizerId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -173,7 +174,7 @@ function Profile() {
     const token = localStorage.getItem('token');
     try {
       await axios.delete(
-        `https://dassass.onrender.com/api/auth/follow/${organizerId}`,
+        `${API_URL}/auth/follow/${organizerId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchProfile();

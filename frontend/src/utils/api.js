@@ -1,8 +1,10 @@
 // API Helper - Centralized place for all backend API calls
 import axios from 'axios';
 
-// Base URL for your backend
-const API_URL = 'https://dassass.onrender.com/api';
+// Base URL for your backend - uses env variable for local dev, falls back to production
+const API_URL = import.meta.env.VITE_API_URL || 'https://dassass.onrender.com/api';
+
+export { API_URL };
 
 // Create axios instance with default config
 const api = axios.create({

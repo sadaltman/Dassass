@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function MyEvents() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ function MyEvents() {
     
     try {
       const response = await axios.get(
-        'https://dassass.onrender.com/api/events/my-events',
+        `${API_URL}/events/my-events`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -35,7 +36,7 @@ function MyEvents() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { status: 'published' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -54,7 +55,7 @@ function MyEvents() {
     
     try {
       await axios.delete(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

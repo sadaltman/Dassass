@@ -209,11 +209,11 @@ const getPasswordResets = async (req,res) =>{
             success:true,
             requests:requests.map(r => ({
                 id:r._id,
-                organizer:{
+                organizer: r.organizerId ? {
                     id:r.organizerId._id,
                     name:r.organizerId.name,
                     email:r.organizerId.loginEmail
-                },
+                } : null,
                 reason:r.reason,
                 status:r.status,
                 adminComment:r.adminComment,

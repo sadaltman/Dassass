@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function ClubDetail() {
   const { id } = useParams();
@@ -19,7 +20,7 @@ function ClubDetail() {
 
   const fetchOrganizerDetails = async () => {
     try {
-      const response = await axios.get(`https://dassass.onrender.com/api/organizers/${id}`);
+      const response = await axios.get(`${API_URL}/organizers/${id}`);
       setOrganizer(response.data.organizer);
       setEvents(response.data.events || []);
       setLoading(false);
@@ -38,7 +39,7 @@ function ClubDetail() {
     const token = localStorage.getItem('token');
     try {
       await axios.post(
-        `https://dassass.onrender.com/api/auth/follow/${id}`,
+        `${API_URL}/auth/follow/${id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +54,7 @@ function ClubDetail() {
     const token = localStorage.getItem('token');
     try {
       await axios.delete(
-        `https://dassass.onrender.com/api/auth/follow/${id}`,
+        `${API_URL}/auth/follow/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('Unfollowed');

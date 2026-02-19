@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ function Dashboard() {
     const token = localStorage.getItem('token');
     
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/registrations/my-registrations', {
+      const response = await axios.get(`${API_URL}/registrations/my-registrations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRegistrations(response.data.registrations || []);
@@ -40,7 +41,7 @@ function Dashboard() {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        `https://dassass.onrender.com/api/registrations/${regId}/calendar`,
+        `${API_URL}/registrations/${regId}/calendar`,
         { 
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob'

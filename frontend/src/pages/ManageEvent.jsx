@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function ManageEvent() {
   const { id } = useParams();
@@ -56,7 +57,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -73,7 +74,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `https://dassass.onrender.com/api/registrations/event/${id}`,
+        `${API_URL}/registrations/event/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -88,7 +89,7 @@ function ManageEvent() {
     
     try {
       const response = await axios.get(
-        `https://dassass.onrender.com/api/organizers/analytics`,
+        `${API_URL}/organizers/analytics`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAnalytics(response.data);
@@ -144,7 +145,7 @@ function ManageEvent() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { status: 'published' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -161,7 +162,7 @@ function ManageEvent() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -180,7 +181,7 @@ function ManageEvent() {
     
     try {
       await axios.delete(
-        `https://dassass.onrender.com/api/events/${id}`,
+        `${API_URL}/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

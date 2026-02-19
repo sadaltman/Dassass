@@ -2,6 +2,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 
@@ -9,7 +10,7 @@ const INTEREST_OPTIONS = [
   'Music', 'Dance', 'Drama', 'Art', 'Photography',
   'Coding', 'Robotics', 'AI/ML', 'Web Development', 'Cybersecurity',
   'Cricket', 'Football', 'Basketball', 'Badminton', 'Chess',
-  'Debate', 'Poetry', 'Writing', 'Quiz', 'Public Speaking'
+  'Debate', 'Poetry', 'Writing', 'Quiz', 'Public Speaking','Culture'
 ];
 
 function Onboarding() {
@@ -32,7 +33,7 @@ function Onboarding() {
 
   const fetchClubs = async () => {
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/organizers/all');
+      const response = await axios.get(`${API_URL}/organizers`);
       setClubs(response.data.organizers || []);
     } catch (err) {
       console.error('Failed to load clubs');
@@ -62,7 +63,7 @@ function Onboarding() {
 
     try {
       await axios.post(
-        'https://dassass.onrender.com/api/auth/onboarding',
+        `${API_URL}/auth/onboarding`,
         { interests: selectedInterests, followedClubs },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function AdminLogin() {
     try {
       console.log('Sending login request with:', { email, password });
       
-      const response = await axios.post('https://dassass.onrender.com/api/admin/login', {
+      const response = await axios.post(`${API_URL}/admin/login`, {
         email,
         password
       });

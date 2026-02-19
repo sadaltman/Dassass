@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function OrganizerLogin() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ function OrganizerLogin() {
     setError('');
     
     try {
-      const response = await axios.post('https://dassass.onrender.com/api/organizers/login', {
+      const response = await axios.post(`${API_URL}/organizers/login`, {
         email,
         password
       });

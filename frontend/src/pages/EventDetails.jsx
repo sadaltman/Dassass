@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
-import { getEventById } from '../utils/api';
+import { getEventById, API_URL } from '../utils/api';
 import axios from 'axios';
 
 function EventDetails() {
@@ -37,12 +37,21 @@ function EventDetails() {
       checkRegistration();
       fetchMessages();
     }
-    // Check if current user is the organizer
+    // Check if current user is THIS event's organizer
     if (event) {
       const orgToken = localStorage.getItem('organizerToken');
       if (orgToken) {
-        setIsOrganizer(true);
-        fetchMessages(orgToken);
+        // Decode token to get organizer ID and compare with event.organizerId
+        try {
+          const payload = JSON.parse(atob(orgToken.split('.')[1]));
+          const eventOrgId = event.organizerId?._id || event.organizerId;
+          if (payload.userId === eventOrgId?.toString()) {
+            setIsOrganizer(true);
+            fetchMessages(orgToken);
+          }
+        } catch (e) {
+          // invalid token
+        }
       }
     }
   }, [event, isAuthenticated]);
@@ -61,7 +70,7 @@ function EventDetails() {
   const checkRegistration = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/registrations/my-registrations', {
+      const response = await axios.get(`${API_URL}/registrations/my-registrations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const regs = response.data.registrations || [];
@@ -72,11 +81,12 @@ function EventDetails() {
     }
   };
 
-  const fetchMessages = async (orgToken) => {
-    const token = orgToken || localStorage.getItem('organizerToken') || localStorage.getItem('token');
+  const fetchMessages = async (specificToken) => {
+    // Prefer participant token, fall back to organizer token
+    const token = specificToken || localStorage.getItem('token') || localStorage.getItem('organizerToken');
     if (!token) return;
     try {
-      const response = await axios.get(`https://dassass.onrender.com/api/events/${id}/messages`, {
+      const response = await axios.get(`${API_URL}/events/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(response.data.messages || []);
@@ -137,7 +147,7 @@ function EventDetails() {
       }
 
       await axios.post(
-        `https://dassass.onrender.com/api/registrations/events/${id}`,
+        `${API_URL}/registrations/events/${id}`,
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -158,10 +168,15 @@ function EventDetails() {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    // Use participant token first, fall back to organizer token
+    const token = localStorage.getItem('token') || localStorage.getItem('organizerToken');
+    if (!token) {
+      alert('You must be logged in to post.');
+      return;
+    }
     try {
       await axios.post(
-        `https://dassass.onrender.com/api/events/${id}/messages`,
+        `${API_URL}/events/${id}/messages`,
         { message: newMessage },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -175,10 +190,11 @@ function EventDetails() {
   const handleReply = async (parentId) => {
     if (!replyText.trim()) return;
 
-    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('organizerToken');
+    if (!token) return;
     try {
       await axios.post(
-        `https://dassass.onrender.com/api/events/${id}/messages`,
+        `${API_URL}/events/${id}/messages`,
         { message: replyText, parentId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -191,10 +207,11 @@ function EventDetails() {
   };
 
   const handleReaction = async (messageId, emoji) => {
-    const token = localStorage.getItem('organizerToken') || localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('organizerToken');
+    if (!token) return;
     try {
       await axios.post(
-        `https://dassass.onrender.com/api/messages/${messageId}/react`,
+        `${API_URL}/messages/${messageId}/react`,
         { emoji },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -511,8 +528,8 @@ function EventDetails() {
                     <div className={`border-2 p-3 ${msg.pinned ? 'border-yellow-500 bg-yellow-50' : 'border-black'}`}>
                       {msg.pinned && <span className="text-xs text-yellow-700 font-bold">PINNED</span>}
                       <p className="text-sm text-gray-600">
-                        {msg.userId?.firstName || msg.organizerId?.name || 'Unknown'} {msg.userId?.lastName || ''} 
-                        {msg.organizerId && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
+                        {msg.senderName || msg.userId?.firstName && `${msg.userId.firstName} ${msg.userId.lastName || ''}`.trim() || 'Unknown'}
+                        {msg.senderRole === 'organizer' && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
                         {' '} • {new Date(msg.createdAt).toLocaleString()}
                       </p>
                       <p className="my-2">{msg.message}</p>
@@ -559,11 +576,11 @@ function EventDetails() {
                     </div>
 
                     {/* Replies (threaded) */}
-                    {messages.filter(r => r.parentId === msg._id).map(reply => (
+                    {messages.filter(r => r.parentId?.toString() === msg._id?.toString()).map(reply => (
                       <div key={reply._id} className="ml-8 mt-1 border-2 border-gray-400 p-3 bg-gray-50">
                         <p className="text-sm text-gray-600">
-                          {reply.userId?.firstName || reply.organizerId?.name || 'Unknown'} {reply.userId?.lastName || ''}
-                          {reply.organizerId && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
+                          {reply.senderName || reply.userId?.firstName && `${reply.userId.firstName} ${reply.userId.lastName || ''}`.trim() || 'Unknown'}
+                          {reply.senderRole === 'organizer' && <span className="ml-1 px-1 py-0.5 bg-black text-white text-xs">ORGANIZER</span>}
                           {' '} • {new Date(reply.createdAt).toLocaleString()}
                         </p>
                         <p className="my-1">{reply.message}</p>

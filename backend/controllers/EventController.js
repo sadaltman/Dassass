@@ -26,8 +26,12 @@ const computeEventStatus = (event) => {
 
 // Update event status if needed (mutates and saves)
 const autoUpdateEventStatus = async (event) => {
+    // Never auto-override manually set terminal states
+    if (event.status === 'draft' || event.status === 'completed' || event.status === 'closed') {
+        return event;
+    }
     const computedStatus = computeEventStatus(event);
-    if (event.status !== 'draft' && event.status !== computedStatus) {
+    if (event.status !== computedStatus) {
         event.status = computedStatus;
         await event.save();
     }
@@ -142,8 +146,12 @@ const getAllEvents = async (req,res) =>{
         
         // Auto-update status for each event based on current time
         const updatedEvents = await Promise.all(events.map(async (event) => {
+            // Never auto-override manually set terminal states
+            if (event.status === 'draft' || event.status === 'completed' || event.status === 'closed') {
+                return event;
+            }
             const computedStatus = computeEventStatus(event);
-            if (event.status !== 'draft' && event.status !== computedStatus) {
+            if (event.status !== computedStatus) {
                 event.status = computedStatus;
                 await event.save();
             }
@@ -232,6 +240,7 @@ const updateEvent = async (req,res) =>{
         }
         
         const {status,description,regDeadline,regLimit} = req.body;
+        const oldStatus = event.status;
         
         if(event.status === 'draft'){
             // Lock custom form if event has registrations
@@ -255,7 +264,6 @@ const updateEvent = async (req,res) =>{
             // Allow manual override to closed only
             if(status === 'closed') event.status = status;
         }
-        const oldStatus = event.status;
         await event.save();
                 if(req.body.status === 'published' && oldStatus !== 'published'){
             const org = await organiser.findById(event.organizerId);

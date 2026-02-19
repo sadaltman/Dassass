@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function Events() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -40,7 +41,7 @@ function Events() {
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       
       const response = await axios.get(
-        `https://dassass.onrender.com/api/events?${params.toString()}`,
+        `${API_URL}/events?${params.toString()}`,
         config
       );
       setEvents(response.data.events || []);
@@ -53,7 +54,7 @@ function Events() {
 
   const fetchTrending = async () => {
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/events/trending');
+      const response = await axios.get(`${API_URL}/events/trending`);
       setTrendingEvents(response.data.events || []);
     } catch (err) {
       console.error('Failed to fetch trending');

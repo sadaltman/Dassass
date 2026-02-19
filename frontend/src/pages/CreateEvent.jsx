@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function CreateEvent() {
   const navigate = useNavigate();
@@ -184,7 +185,7 @@ function CreateEvent() {
         };
       }
 
-      await axios.post('https://dassass.onrender.com/api/events', eventData, {
+      await axios.post(`${API_URL}/events`, eventData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

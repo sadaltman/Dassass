@@ -1,6 +1,8 @@
 const EventMessage = require('../models/eventMessage');
 const Event = require('../models/event');
 const Registration = require('../models/registration');
+const User = require('../models/user');
+const Organiser = require('../models/organiser');
 
 const postMessage = async (req,res) =>{
     try{
@@ -27,11 +29,26 @@ const postMessage = async (req,res) =>{
             });
         }
         
+        // Resolve sender name from the correct collection
+        let senderName = 'Unknown';
+        let senderRole = 'participant';
+        if (req.userInfo.userType === 'organizer') {
+            const org = await Organiser.findById(userId);
+            senderName = org?.name || 'Organizer';
+            senderRole = 'organizer';
+        } else {
+            const userDoc = await User.findById(userId);
+            senderName = userDoc ? `${userDoc.firstName} ${userDoc.lastName}` : 'Unknown';
+            senderRole = 'participant';
+        }
+
         const msg = new EventMessage({
             eventId,
             userId,
             message,
-            parentId: parentId || null
+            parentId: parentId || null,
+            senderName,
+            senderRole
         });
         
         await msg.save();
@@ -60,7 +77,7 @@ const getMessages = async (req,res) =>{
         
         const messages = await EventMessage.find({eventId})
             .populate('userId','firstName lastName')
-            .sort({pinned:-1,createdAt:-1})
+            .sort({pinned:-1,createdAt:1})
             .skip((page-1)*limit)
             .limit(limit);
         

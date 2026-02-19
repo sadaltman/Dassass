@@ -32,6 +32,15 @@ const eventMessageSchema = new mongoose.Schema({
     pinned:{
         type:Boolean,
         default:false
+    },
+    senderName:{
+        type:String,
+        default:''
+    },
+    senderRole:{
+        type:String,
+        enum:['participant','organizer'],
+        default:'participant'
     }
 },{
     timestamps:true

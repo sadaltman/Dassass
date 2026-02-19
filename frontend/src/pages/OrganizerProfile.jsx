@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function OrganizerProfile() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ function OrganizerProfile() {
   const [success, setSuccess] = useState('');
   
   const [loginEmail, setLoginEmail] = useState('');
+  const [resetReason, setResetReason] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -32,7 +34,7 @@ function OrganizerProfile() {
     }
 
     try {
-      const response = await axios.get('https://dassass.onrender.com/api/organizers/profile', {
+      const response = await axios.get(`${API_URL}/organizers/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -70,7 +72,7 @@ function OrganizerProfile() {
 
     try {
       await axios.put(
-        'https://dassass.onrender.com/api/organizers/profile',
+        `${API_URL}/organizers/profile`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -84,17 +86,20 @@ function OrganizerProfile() {
   };
 
   const handleRequestPasswordReset = async () => {
-    if (!window.confirm('Request a password reset? An admin will need to approve this.')) return;
+    if (!resetReason.trim()) {
+      setError('Please enter a reason for the password reset request.');
+      return;
+    }
 
     const token = localStorage.getItem('organizerToken');
 
     try {
       await axios.post(
-        'https://dassass.onrender.com/api/organizers/request-password-reset',
-        {},
+        `${API_URL}/organizers/request-password-reset`,
+        { reason: resetReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+      setResetReason('');
       setSuccess('Password reset request submitted. An admin will review it.');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit reset request');
@@ -269,6 +274,16 @@ function OrganizerProfile() {
           <p className="text-sm text-gray-600 mb-4">
             Password changes are managed by the admin. Submit a request below and an admin will review it.
           </p>
+          <div className="mb-4">
+            <label className="block font-bold mb-2">Reason for reset request *</label>
+            <textarea
+              value={resetReason}
+              onChange={(e) => setResetReason(e.target.value)}
+              placeholder="Explain why you need a password reset..."
+              rows="3"
+              className="w-full border-2 border-black p-2"
+            />
+          </div>
           <button
             onClick={handleRequestPasswordReset}
             type="button"

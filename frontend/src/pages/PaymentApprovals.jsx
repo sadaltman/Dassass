@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function PaymentApprovals() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ function PaymentApprovals() {
     
     try {
       const response = await axios.get(
-        'https://dassass.onrender.com/api/registrations/pending-payments',
+        `${API_URL}/registrations/pending-payments`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -56,7 +57,7 @@ function PaymentApprovals() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/registrations/${id}/approve-payment`,
+        `${API_URL}/registrations/${id}/approve-payment`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -73,7 +74,7 @@ function PaymentApprovals() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/registrations/${id}/reject-payment`,
+        `${API_URL}/registrations/${id}/reject-payment`,
         { reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );

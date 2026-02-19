@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.get(
-        'https://dassass.onrender.com/api/admin/organizers',
+        `${API_URL}/admin/organizers`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -43,7 +44,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.get(
-        'https://dassass.onrender.com/api/admin/password-resets',
+        `${API_URL}/admin/password-resets`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPasswordResets(response.data.requests || []);
@@ -57,7 +58,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.put(
-        `https://dassass.onrender.com/api/admin/password-resets/${id}/approve`,
+        `${API_URL}/admin/password-resets/${id}/approve`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -75,7 +76,7 @@ function AdminDashboard() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/admin/password-resets/${id}/reject`,
+        `${API_URL}/admin/password-resets/${id}/reject`,
         { comment: comment || 'Request rejected by admin' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -93,7 +94,7 @@ function AdminDashboard() {
     
     try {
       const response = await axios.post(
-        'https://dassass.onrender.com/api/admin/organizers',
+        `${API_URL}/admin/organizers`,
         newOrganizer,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -117,7 +118,7 @@ function AdminDashboard() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/admin/organizers/${id}/toggle`,
+        `${API_URL}/admin/organizers/${id}/toggle`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -135,7 +136,7 @@ function AdminDashboard() {
     
     try {
       await axios.delete(
-        `https://dassass.onrender.com/api/admin/organizers/${id}`,
+        `${API_URL}/admin/organizers/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -151,7 +152,7 @@ function AdminDashboard() {
     
     try {
       await axios.put(
-        `https://dassass.onrender.com/api/admin/organizers/${id}/archive`,
+        `${API_URL}/admin/organizers/${id}/archive`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -357,14 +358,14 @@ function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {passwordResets.map(request => (
-                  <div key={request._id} className="border-2 border-black p-4">
+                  <div key={request.id || request._id} className="border-2 border-black p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-bold text-lg mb-2">
                           {request.organizer?.name || 'Unknown Organizer'}
                         </h3>
                         <p className="text-sm mb-1">
-                          <strong>Email:</strong> {request.organizer?.loginEmail}
+                          <strong>Email:</strong> {request.organizer?.email}
                         </p>
                         <p className="text-sm mb-1">
                           <strong>Requested:</strong> {new Date(request.createdAt).toLocaleString()}
@@ -391,13 +392,13 @@ function AdminDashboard() {
                       {request.status === 'pending' && (
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleApproveReset(request._id)}
+                            onClick={() => handleApproveReset(request.id)}
                             className="px-3 py-1 bg-green-600 text-white border-2 border-green-700 hover:bg-green-700 text-sm"
                           >
                             Approve
                           </button>
                           <button
-                            onClick={() => handleRejectReset(request._id)}
+                            onClick={() => handleRejectReset(request.id)}
                             className="px-3 py-1 bg-red-600 text-white border-2 border-red-700 hover:bg-red-700 text-sm"
                           >
                             Reject

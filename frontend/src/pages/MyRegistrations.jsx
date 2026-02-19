@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getMyRegistrations } from '../utils/api';
+import { getMyRegistrations, API_URL } from '../utils/api';
 import axios from 'axios';
 
 function MyRegistrations() {
@@ -26,7 +26,7 @@ function MyRegistrations() {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        `https://dassass.onrender.com/api/registrations/${regId}/calendar`,
+        `${API_URL}/registrations/${regId}/calendar`,
         { 
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob'

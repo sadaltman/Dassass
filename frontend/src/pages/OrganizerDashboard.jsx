@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 function OrganizerDashboard() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ function OrganizerDashboard() {
     }
 
     // Fetch organizer profile
-    axios.get('https://dassass.onrender.com/api/organizers/profile', {
+    axios.get(`${API_URL}/organizers/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -33,7 +34,7 @@ function OrganizerDashboard() {
     });
 
     // Fetch organizer's events only
-    axios.get('https://dassass.onrender.com/api/events/my-events', {
+    axios.get(`${API_URL}/events/my-events`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -50,7 +51,7 @@ function OrganizerDashboard() {
     });
 
     // Fetch analytics
-    axios.get('https://dassass.onrender.com/api/organizers/analytics', {
+    axios.get(`${API_URL}/organizers/analytics`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
