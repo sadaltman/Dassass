@@ -1,4 +1,3 @@
-// Manage Single Event - View registrations and details
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,12 +11,11 @@ function ManageEvent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [analytics, setAnalytics] = useState(null);
-  
-  // Filters for participant list
+
   const [filters, setFilters] = useState({
-    attendance: 'all', // all, attended, not-attended
-    institution: 'all', // all, iiit, non-iiit
-    search: '' // search by name or email
+    attendance: 'all',
+    institution: 'all',
+    search: ''
   });
 
   useEffect(() => {
@@ -26,41 +24,36 @@ function ManageEvent() {
     fetchAnalytics();
   }, [id]);
 
-  // Filter registrations based on selected filters
   const filteredRegistrations = registrations.filter(reg => {
-    // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const fullName = `${reg.userId?.firstName || ''} ${reg.userId?.lastName || ''}`.toLowerCase();
       const email = (reg.userId?.email || '').toLowerCase();
       if (!fullName.includes(searchLower) && !email.includes(searchLower)) return false;
     }
-    
-    // Attendance filter
+
     if (filters.attendance === 'attended' && !reg.attended) return false;
     if (filters.attendance === 'not-attended' && reg.attended) return false;
-    
-    // Institution filter
+
     if (filters.institution === 'iiit' && reg.userId?.participantType !== 'iiit') return false;
     if (filters.institution === 'non-iiit' && reg.userId?.participantType === 'iiit') return false;
-    
+
     return true;
   });
 
-  // Calculate revenue
   const totalRevenue = registrations
     .filter(r => r.paymentStatus === 'approved')
     .reduce((sum, r) => sum + (event?.regFee || 0), 0);
 
   const fetchEventDetails = async () => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       const response = await axios.get(
         `${API_URL}/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setEvent(response.data.event);
       setLoading(false);
     } catch (err) {
@@ -71,13 +64,13 @@ function ManageEvent() {
 
   const fetchRegistrations = async () => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       const response = await axios.get(
         `${API_URL}/registrations/event/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setRegistrations(response.data.registrations || []);
     } catch (err) {
       console.error('Failed to load registrations:', err);
@@ -86,7 +79,7 @@ function ManageEvent() {
 
   const fetchAnalytics = async () => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       const response = await axios.get(
         `${API_URL}/organizers/analytics`,
@@ -104,7 +97,6 @@ function ManageEvent() {
       return;
     }
 
-    // Build CSV content
     const headers = ['Name', 'Email', 'Registration Date', 'Payment Status', 'Attendance', 'Ticket ID'];
     const rows = registrations.map(reg => [
       `${reg.userId?.firstName || ''} ${reg.userId?.lastName || ''}`,
@@ -115,14 +107,14 @@ function ManageEvent() {
       reg.ticketId || 'N/A'
     ]);
 
-    // Add custom field data if present
-    if (registrations.some(r => r.customFormData && Object.keys(r.customFormData).length > 0)) {
-      const customKeys = [...new Set(registrations.flatMap(r => Object.keys(r.customFormData || {})))];
+    if (registrations.some(r => r.formData && Object.keys(r.formData).length > 0)) {
+      const customKeys = [...new Set(registrations.flatMap(r => Object.keys(r.formData || {})))];
       customKeys.forEach(key => headers.push(key));
       rows.forEach((row, i) => {
         const reg = registrations[i];
         customKeys.forEach(key => {
-          row.push(reg.customFormData?.[key] || '');
+          const val = reg.formData?.[key];
+          row.push(val && typeof val === 'string' && val.startsWith('data:') ? '[image]' : (val || ''));
         });
       });
     }
@@ -132,7 +124,6 @@ function ManageEvent() {
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
-    // Download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -142,14 +133,14 @@ function ManageEvent() {
 
   const handlePublish = async () => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       await axios.put(
         `${API_URL}/events/${id}`,
         { status: 'published' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Event published successfully!');
       fetchEventDetails();
     } catch (err) {
@@ -159,14 +150,14 @@ function ManageEvent() {
 
   const handleStatusChange = async (newStatus) => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       await axios.put(
         `${API_URL}/events/${id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert(`Event status changed to ${newStatus}!`);
       fetchEventDetails();
     } catch (err) {
@@ -176,15 +167,15 @@ function ManageEvent() {
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
-    
+
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       await axios.delete(
         `${API_URL}/events/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Event deleted successfully');
       navigate('/organizer/my-events');
     } catch (err) {
@@ -214,17 +205,16 @@ function ManageEvent() {
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
-            <span className={`px-3 py-1 text-sm border-2 ${
-              event.status === 'published' 
-                ? 'border-green-500 bg-green-100'
-                : event.status === 'ongoing'
+            <span className={`px-3 py-1 text-sm border-2 ${event.status === 'published'
+              ? 'border-green-500 bg-green-100'
+              : event.status === 'ongoing'
                 ? 'border-blue-500 bg-blue-100'
                 : event.status === 'completed'
-                ? 'border-purple-500 bg-purple-100'
-                : event.status === 'closed'
-                ? 'border-red-500 bg-red-100'
-                : 'border-yellow-500 bg-yellow-100'
-            }`}>
+                  ? 'border-purple-500 bg-purple-100'
+                  : event.status === 'closed'
+                    ? 'border-red-500 bg-red-100'
+                    : 'border-yellow-500 bg-yellow-100'
+              }`}>
               {event.status.toUpperCase()}
             </span>
           </div>
@@ -247,12 +237,20 @@ function ManageEvent() {
               </>
             )}
             {event.status === 'published' && (
-              <button
-                onClick={() => handleStatusChange('ongoing')}
-                className="px-4 py-2 bg-blue-600 text-white border-2 border-blue-700 hover:bg-blue-700"
-              >
-                Mark Ongoing
-              </button>
+              <>
+                <button
+                  onClick={() => navigate(`/organizer/events/${id}/edit`)}
+                  className="px-4 py-2 bg-blue-600 text-white border-2 border-blue-700 hover:bg-blue-700"
+                >
+                  Edit Event
+                </button>
+                <button
+                  onClick={() => handleStatusChange('ongoing')}
+                  className="px-4 py-2 bg-blue-600 text-white border-2 border-blue-700 hover:bg-blue-700"
+                >
+                  Mark Ongoing
+                </button>
+              </>
             )}
             {(event.status === 'published' || event.status === 'ongoing') && (
               <button
@@ -282,7 +280,7 @@ function ManageEvent() {
         {/* Event Details */}
         <div className="border-2 border-black p-6 mb-6">
           <h2 className="text-2xl font-bold mb-4">Event Details</h2>
-          
+
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <p className="font-bold">Event Type:</p>
@@ -348,7 +346,7 @@ function ManageEvent() {
               Export CSV
             </button>
           </div>
-          
+
           {/* Quick Stats */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="border border-gray-300 p-3 text-center">
@@ -388,7 +386,7 @@ function ManageEvent() {
               <input
                 type="text"
                 value={filters.search}
-                onChange={(e) => setFilters({...filters, search: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 placeholder="Search by name or email..."
                 className="w-full border border-black p-1"
               />
@@ -397,7 +395,7 @@ function ManageEvent() {
               <label className="block text-sm font-bold mb-1">Attendance</label>
               <select
                 value={filters.attendance}
-                onChange={(e) => setFilters({...filters, attendance: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, attendance: e.target.value })}
                 className="border border-black p-1"
               >
                 <option value="all">All</option>
@@ -409,7 +407,7 @@ function ManageEvent() {
               <label className="block text-sm font-bold mb-1">Institution</label>
               <select
                 value={filters.institution}
-                onChange={(e) => setFilters({...filters, institution: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, institution: e.target.value })}
                 className="border border-black p-1"
               >
                 <option value="all">All</option>
@@ -423,7 +421,7 @@ function ManageEvent() {
               </span>
             </div>
           </div>
-          
+
           {registrations.length === 0 ? (
             <p className="text-gray-600">No registrations yet.</p>
           ) : filteredRegistrations.length === 0 ? (
@@ -439,39 +437,57 @@ function ManageEvent() {
                     <th className="text-left p-2">Registration Date</th>
                     <th className="text-left p-2">Payment Status</th>
                     <th className="text-left p-2">Attendance</th>
+                    {filteredRegistrations.some(r => r.formData && Object.keys(r.formData).length > 0) &&
+                      [...new Set(filteredRegistrations.flatMap(r => Object.keys(r.formData || {})))].map(key => (
+                        <th key={key} className="text-left p-2">{key}</th>
+                      ))
+                    }
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRegistrations.map(reg => (
-                    <tr key={reg._id} className="border-b border-gray-300">
-                      <td className="p-2">{reg.userId?.firstName} {reg.userId?.lastName}</td>
-                      <td className="p-2">{reg.userId?.email}</td>
-                      <td className="p-2">
-                        <span className={`px-2 py-1 text-xs border ${
-                          reg.userId?.participantType === 'iiit' 
-                            ? 'border-blue-500 bg-blue-100' 
+                  {filteredRegistrations.map(reg => {
+                    const customKeys = [...new Set(filteredRegistrations.flatMap(r => Object.keys(r.formData || {})))];
+                    return (
+                      <tr key={reg._id} className="border-b border-gray-300">
+                        <td className="p-2">{reg.userId?.firstName} {reg.userId?.lastName}</td>
+                        <td className="p-2">{reg.userId?.email}</td>
+                        <td className="p-2">
+                          <span className={`px-2 py-1 text-xs border ${reg.userId?.participantType === 'iiit'
+                            ? 'border-blue-500 bg-blue-100'
                             : 'border-gray-500 bg-gray-100'
-                        }`}>
-                          {reg.userId?.participantType === 'iiit' ? 'IIIT' : 'Non-IIIT'}
-                        </span>
-                      </td>
-                      <td className="p-2">{new Date(reg.createdAt).toLocaleDateString()}</td>
-                      <td className="p-2">
-                        <span className={`px-2 py-1 text-xs border ${
-                          reg.paymentStatus === 'approved' 
-                            ? 'border-green-500 bg-green-100' 
+                            }`}>
+                            {reg.userId?.participantType === 'iiit' ? 'IIIT' : 'Non-IIIT'}
+                          </span>
+                        </td>
+                        <td className="p-2">{new Date(reg.createdAt).toLocaleDateString()}</td>
+                        <td className="p-2">
+                          <span className={`px-2 py-1 text-xs border ${reg.paymentStatus === 'approved'
+                            ? 'border-green-500 bg-green-100'
                             : reg.paymentStatus === 'pending'
-                            ? 'border-yellow-500 bg-yellow-100'
-                            : 'border-gray-500 bg-gray-100'
-                        }`}>
-                          {reg.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        {reg.attended ? '✓ Present' : '✗ Absent'}
-                      </td>
-                    </tr>
-                  ))}
+                              ? 'border-yellow-500 bg-yellow-100'
+                              : 'border-gray-500 bg-gray-100'
+                            }`}>
+                            {reg.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="p-2">
+                          {reg.attended ? '✓ Present' : '✗ Absent'}
+                        </td>
+                        {customKeys.map(key => {
+                          const val = reg.formData?.[key];
+                          return (
+                            <td key={key} className="p-2">
+                              {val && typeof val === 'string' && val.startsWith('data:') ? (
+                                <a href={val} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">View image</a>
+                              ) : (
+                                String(val ?? '')
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

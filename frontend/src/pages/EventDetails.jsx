@@ -1,4 +1,3 @@
-// Event Details Page - Single event with registration
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -10,17 +9,16 @@ function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useContext(AuthContext);
-  
+
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [registering, setRegistering] = useState(false);
-  
+
   const [selectedVariant, setSelectedVariant] = useState('');
   const [paymentProof, setPaymentProof] = useState('');
   const [customFormData, setCustomFormData] = useState({});
 
-  // For discussion forum
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [replyTo, setReplyTo] = useState(null);
@@ -37,11 +35,9 @@ function EventDetails() {
       checkRegistration();
       fetchMessages();
     }
-    // Check if current user is THIS event's organizer
     if (event) {
       const orgToken = localStorage.getItem('organizerToken');
       if (orgToken) {
-        // Decode token to get organizer ID and compare with event.organizerId
         try {
           const payload = JSON.parse(atob(orgToken.split('.')[1]));
           const eventOrgId = event.organizerId?._id || event.organizerId;
@@ -50,7 +46,6 @@ function EventDetails() {
             fetchMessages(orgToken);
           }
         } catch (e) {
-          // invalid token
         }
       }
     }
@@ -82,7 +77,6 @@ function EventDetails() {
   };
 
   const fetchMessages = async (specificToken) => {
-    // Prefer participant token, fall back to organizer token
     const token = specificToken || localStorage.getItem('token') || localStorage.getItem('organizerToken');
     if (!token) return;
     try {
@@ -101,12 +95,9 @@ function EventDetails() {
       return;
     }
 
-    // Debug: log user object
-    console.log('User object:', user);
     console.log('User participantType:', user?.participantType);
     console.log('Event eligibility:', event.eligibility);
 
-    // Check eligibility
     if (event.eligibility === 'iiit-only' && user?.participantType !== 'iiit') {
       setError(`This event is for IIIT students only. Your type: ${user?.participantType || 'unknown'}`);
       return;
@@ -119,7 +110,7 @@ function EventDetails() {
 
     try {
       const body = { formData: customFormData };
-      
+
       if (event.eventType === 'merchandise') {
         if (!selectedVariant) {
           setError('Please select a variant');
@@ -135,7 +126,6 @@ function EventDetails() {
         body.paymentProof = paymentProof;
       }
 
-      // Validate required custom fields
       if (event.customForm?.fields?.length > 0) {
         for (const field of event.customForm.fields) {
           if (field.required && !customFormData[field.name]) {
@@ -168,7 +158,6 @@ function EventDetails() {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    // Use participant token first, fall back to organizer token
     const token = localStorage.getItem('token') || localStorage.getItem('organizerToken');
     if (!token) {
       alert('You must be logged in to post.');
@@ -249,21 +238,20 @@ function EventDetails() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="border-2 border-black p-6 mb-6">
           <div className="flex justify-between items-start mb-4">
             <h1 className="text-3xl font-bold">{event.name}</h1>
-            <span className={`px-3 py-1 border-2 ${
-              event.eventType === 'merchandise' ? 'border-purple-500 bg-purple-100' : 'border-blue-500 bg-blue-100'
-            }`}>
+            <span className={`px-3 py-1 border-2 ${event.eventType === 'merchandise' ? 'border-purple-500 bg-purple-100' : 'border-blue-500 bg-blue-100'
+              }`}>
               {event.eventType.toUpperCase()}
             </span>
           </div>
-          
+
           <div className="mb-6">
             <p className="mb-4">{event.description}</p>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p><strong>Fee:</strong> ₹{event.regFee || 0}</p>
@@ -298,7 +286,6 @@ function EventDetails() {
             )}
           </div>
 
-          {/* Merchandise Variants */}
           {event.eventType === 'merchandise' && event.merchDetails?.variants?.length > 0 && (
             <div className="border-t-2 border-black pt-4 mb-4">
               <h3 className="font-bold mb-2">Select Variant:</h3>
@@ -323,7 +310,7 @@ function EventDetails() {
               <div className="mt-4">
                 <label className="block font-bold mb-2">Payment Proof:</label>
                 <p className="text-sm text-gray-600 mb-2">Upload an image or provide a URL to your payment screenshot</p>
-                
+
                 {/* File Upload Option */}
                 <div className="mb-2">
                   <input
@@ -332,7 +319,6 @@ function EventDetails() {
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
-                        // Convert to base64 for storage
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setPaymentProof(reader.result);
@@ -343,9 +329,9 @@ function EventDetails() {
                     className="w-full border-2 border-black p-2"
                   />
                 </div>
-                
+
                 <p className="text-sm text-gray-500 text-center my-2">- OR -</p>
-                
+
                 {/* URL Option */}
                 <input
                   type="url"
@@ -359,9 +345,9 @@ function EventDetails() {
                 {paymentProof && (
                   <div className="mt-2">
                     <p className="text-sm font-bold mb-1">Preview:</p>
-                    <img 
-                      src={paymentProof} 
-                      alt="Payment proof" 
+                    <img
+                      src={paymentProof}
+                      alt="Payment proof"
                       className="max-w-xs max-h-40 border border-gray-300"
                       onError={(e) => e.target.style.display = 'none'}
                     />
@@ -371,7 +357,6 @@ function EventDetails() {
             </div>
           )}
 
-          {/* Custom Registration Form Fields */}
           {event.customForm?.fields?.length > 0 && event.status === 'published' && !isDeadlinePassed && !isLimitReached && !isRegistered && (
             <div className="border-t-2 border-black pt-4 mb-4">
               <h3 className="font-bold mb-3">Additional Information:</h3>
@@ -385,14 +370,14 @@ function EventDetails() {
                       <input
                         type="text"
                         value={customFormData[field.name] || ''}
-                        onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.value})}
+                        onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.value })}
                         className="w-full border-2 border-black p-2"
                       />
                     )}
                     {field.type === 'textarea' && (
                       <textarea
                         value={customFormData[field.name] || ''}
-                        onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.value})}
+                        onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.value })}
                         rows="3"
                         className="w-full border-2 border-black p-2"
                       />
@@ -401,7 +386,7 @@ function EventDetails() {
                       <input
                         type="number"
                         value={customFormData[field.name] || ''}
-                        onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.value})}
+                        onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.value })}
                         className="w-full border-2 border-black p-2"
                       />
                     )}
@@ -409,14 +394,14 @@ function EventDetails() {
                       <input
                         type="email"
                         value={customFormData[field.name] || ''}
-                        onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.value})}
+                        onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.value })}
                         className="w-full border-2 border-black p-2"
                       />
                     )}
                     {field.type === 'dropdown' && (
                       <select
                         value={customFormData[field.name] || ''}
-                        onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.value})}
+                        onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.value })}
                         className="w-full border-2 border-black p-2"
                       >
                         <option value="">Select an option</option>
@@ -430,7 +415,7 @@ function EventDetails() {
                         <input
                           type="checkbox"
                           checked={customFormData[field.name] || false}
-                          onChange={(e) => setCustomFormData({...customFormData, [field.name]: e.target.checked})}
+                          onChange={(e) => setCustomFormData({ ...customFormData, [field.name]: e.target.checked })}
                         />
                         <span>Yes</span>
                       </label>
@@ -444,7 +429,7 @@ function EventDetails() {
                             if (file) {
                               const reader = new FileReader();
                               reader.onloadend = () => {
-                                setCustomFormData({...customFormData, [field.name]: reader.result});
+                                setCustomFormData({ ...customFormData, [field.name]: reader.result });
                               };
                               reader.readAsDataURL(file);
                             }
@@ -497,11 +482,10 @@ function EventDetails() {
           )}
         </div>
 
-        {/* Discussion Forum */}
         {(isRegistered || isOrganizer) && (
           <div className="border-2 border-black p-6">
             <h2 className="text-2xl font-bold mb-4">Discussion Forum</h2>
-            
+
             <form onSubmit={handlePostMessage} className="mb-4">
               <textarea
                 value={newMessage}
@@ -522,7 +506,6 @@ function EventDetails() {
               <p className="text-gray-600">No messages yet. Be the first to post!</p>
             ) : (
               <div className="space-y-3">
-                {/* Show top-level messages (no parentId) */}
                 {messages.filter(m => !m.parentId).map(msg => (
                   <div key={msg._id}>
                     <div className={`border-2 p-3 ${msg.pinned ? 'border-yellow-500 bg-yellow-50' : 'border-black'}`}>
@@ -533,8 +516,7 @@ function EventDetails() {
                         {' '} • {new Date(msg.createdAt).toLocaleString()}
                       </p>
                       <p className="my-2">{msg.message}</p>
-                      
-                      {/* Reactions */}
+
                       <div className="flex items-center gap-2 mt-2">
                         {['👍', '❤️', '🎉', '😂'].map(emoji => {
                           const count = (msg.reactions || []).filter(r => r.emoji === emoji).length;
@@ -556,7 +538,6 @@ function EventDetails() {
                         </button>
                       </div>
 
-                      {/* Reply form */}
                       {replyTo === msg._id && (
                         <div className="mt-2 ml-4">
                           <input
@@ -575,7 +556,6 @@ function EventDetails() {
                       )}
                     </div>
 
-                    {/* Replies (threaded) */}
                     {messages.filter(r => r.parentId?.toString() === msg._id?.toString()).map(reply => (
                       <div key={reply._id} className="ml-8 mt-1 border-2 border-gray-400 p-3 bg-gray-50">
                         <p className="text-sm text-gray-600">

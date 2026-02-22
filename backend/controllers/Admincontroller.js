@@ -62,7 +62,6 @@ const createOrganizer = async (req, res) => {
             });
         }
 
-        // Auto-generate login email from name
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
         let loginEmail = `${slug}@felicity.club`;
         let counter = 1;
@@ -71,7 +70,6 @@ const createOrganizer = async (req, res) => {
             counter++;
         }
 
-        // Auto-generate a secure password
         const generatedPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-4).toUpperCase();
         const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
@@ -119,24 +117,18 @@ const deleteOrganizer = async (req, res) => {
             });
         }
 
-        // Cascade delete: Delete all events by this organizer
         const Event = require('../models/event');
         const Registration = require('../models/registration');
-        
-        // Get all events by this organizer
+
         const events = await Event.find({ organizerId: id });
         const eventIds = events.map(e => e._id);
-        
-        // Delete all registrations for these events
+
         await Registration.deleteMany({ eventId: { $in: eventIds } });
-        
-        // Delete all events
+
         await Event.deleteMany({ organizerId: id });
-        
-        // Delete password reset requests
+
         await PasswordResetRequest.deleteMany({ organizerId: id });
-        
-        // Delete the organizer
+
         await organiser.findByIdAndDelete(id);
 
         return res.status(200).json({
@@ -178,10 +170,10 @@ const toggleOrganizerStatus = async (req, res) => {
                 message: 'Organizer not found'
             });
         }
-        
+
         org.active = !org.active;
         await org.save();
-        
+
         return res.json({
             success: true,
             message: org.active ? 'Organizer activated' : 'Organizer deactivated',
@@ -199,116 +191,116 @@ const toggleOrganizerStatus = async (req, res) => {
     }
 };
 
-const getPasswordResets = async (req,res) =>{
-    try{
+const getPasswordResets = async (req, res) => {
+    try {
         const requests = await PasswordResetRequest.find()
-            .populate('organizerId','name loginEmail')
-            .sort({createdAt:-1});
-        
+            .populate('organizerId', 'name loginEmail')
+            .sort({ createdAt: -1 });
+
         res.json({
-            success:true,
-            requests:requests.map(r => ({
-                id:r._id,
+            success: true,
+            requests: requests.map(r => ({
+                id: r._id,
                 organizer: r.organizerId ? {
-                    id:r.organizerId._id,
-                    name:r.organizerId.name,
-                    email:r.organizerId.loginEmail
+                    id: r.organizerId._id,
+                    name: r.organizerId.name,
+                    email: r.organizerId.loginEmail
                 } : null,
-                reason:r.reason,
-                status:r.status,
-                adminComment:r.adminComment,
-                newPassword:r.newPassword,
-                createdAt:r.createdAt
+                reason: r.reason,
+                status: r.status,
+                adminComment: r.adminComment,
+                newPassword: r.newPassword,
+                createdAt: r.createdAt
             }))
         });
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const approvePasswordReset = async (req,res) =>{
-    try{
-        const {id} = req.params;
-        const {comment} = req.body;
-        
+const approvePasswordReset = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { comment } = req.body;
+
         const request = await PasswordResetRequest.findById(id);
-        if(!request){
+        if (!request) {
             return res.status(404).json({
-                success:false,
-                message:'Request not found'
+                success: false,
+                message: 'Request not found'
             });
         }
-        
-        if(request.status !== 'pending'){
+
+        if (request.status !== 'pending') {
             return res.status(400).json({
-                success:false,
-                message:'Request already processed'
+                success: false,
+                message: 'Request already processed'
             });
         }
-        
+
         const newPassword = Math.random().toString(36).slice(-8);
-        const hashedPassword = await bcrypt.hash(newPassword,10);
-        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
         const org = await organiser.findById(request.organizerId);
         org.hashedPassword = hashedPassword;
         await org.save();
-        
+
         request.status = 'approved';
         request.adminComment = comment;
         request.newPassword = newPassword;
         await request.save();
-        
+
         res.json({
-            success:true,
-            message:'Password reset approved',
+            success: true,
+            message: 'Password reset approved',
             newPassword
         });
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const rejectPasswordReset = async (req,res) =>{
-    try{
-        const {id} = req.params;
-        const {comment} = req.body;
-        
+const rejectPasswordReset = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { comment } = req.body;
+
         const request = await PasswordResetRequest.findById(id);
-        if(!request){
+        if (!request) {
             return res.status(404).json({
-                success:false,
-                message:'Request not found'
+                success: false,
+                message: 'Request not found'
             });
         }
-        
-        if(request.status !== 'pending'){
+
+        if (request.status !== 'pending') {
             return res.status(400).json({
-                success:false,
-                message:'Request already processed'
+                success: false,
+                message: 'Request already processed'
             });
         }
-        
+
         request.status = 'rejected';
         request.adminComment = comment || 'Request denied';
         await request.save();
-        
+
         res.json({
-            success:true,
-            message:'Request rejected'
+            success: true,
+            message: 'Request rejected'
         });
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
@@ -323,11 +315,11 @@ const archiveOrganizer = async (req, res) => {
                 message: 'Organizer not found'
             });
         }
-        
+
         org.archived = !org.archived;
         if (org.archived) org.active = false;
         await org.save();
-        
+
         return res.json({
             success: true,
             message: org.archived ? 'Organizer archived' : 'Organizer unarchived',

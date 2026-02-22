@@ -4,31 +4,31 @@ const Registration = require('../models/registration');
 const User = require('../models/user');
 const Organiser = require('../models/organiser');
 
-const postMessage = async (req,res) =>{
-    try{
-        const {eventId} = req.params;
-        const {message,parentId} = req.body;
+const postMessage = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const { message, parentId } = req.body;
         const userId = req.userInfo.userId;
-        
-        if(!message){
+
+        if (!message) {
             return res.status(400).json({
-                success:false,
-                message:'Message required'
+                success: false,
+                message: 'Message required'
             });
         }
-        
+
         // Check if user is registered participant OR event organizer
         const event = await Event.findById(eventId);
-        const registration = await Registration.findOne({eventId,userId});
+        const registration = await Registration.findOne({ eventId, userId });
         const isOrganizer = event && event.organizerId.toString() === userId;
-        
-        if(!registration && !isOrganizer){
+
+        if (!registration && !isOrganizer) {
             return res.status(403).json({
-                success:false,
-                message:'Must be registered or organizer to post'
+                success: false,
+                message: 'Must be registered or organizer to post'
             });
         }
-        
+
         // Resolve sender name from the correct collection
         let senderName = 'Unknown';
         let senderRole = 'participant';
@@ -50,176 +50,176 @@ const postMessage = async (req,res) =>{
             senderName,
             senderRole
         });
-        
+
         await msg.save();
-        
+
         const populated = await EventMessage.findById(msg._id)
-            .populate('userId','firstName lastName');
-        
+            .populate('userId', 'firstName lastName');
+
         res.status(201).json({
-            success:true,
-            message:populated
+            success: true,
+            message: populated
         });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const getMessages = async (req,res) =>{
-    try{
-        const {eventId} = req.params;
+const getMessages = async (req, res) => {
+    try {
+        const { eventId } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = 50;
-        
-        const messages = await EventMessage.find({eventId})
-            .populate('userId','firstName lastName')
-            .sort({pinned:-1,createdAt:1})
-            .skip((page-1)*limit)
+
+        const messages = await EventMessage.find({ eventId })
+            .populate('userId', 'firstName lastName')
+            .sort({ pinned: -1, createdAt: 1 })
+            .skip((page - 1) * limit)
             .limit(limit);
-        
-        const total = await EventMessage.countDocuments({eventId});
-        
+
+        const total = await EventMessage.countDocuments({ eventId });
+
         res.json({
-            success:true,
+            success: true,
             messages,
-            pagination:{
+            pagination: {
                 page,
                 limit,
                 total,
-                pages:Math.ceil(total/limit)
+                pages: Math.ceil(total / limit)
             }
         });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const deleteMessage = async (req,res) =>{
-    try{
-        const {id} = req.params;
+const deleteMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
         const organizerId = req.userInfo.userId;
-        
-        const msg = await EventMessage.findById(id).populate('eventId','organizerId');
-        if(!msg){
+
+        const msg = await EventMessage.findById(id).populate('eventId', 'organizerId');
+        if (!msg) {
             return res.status(404).json({
-                success:false,
-                message:'Message not found'
+                success: false,
+                message: 'Message not found'
             });
         }
-        
-        if(msg.eventId.organizerId.toString() !== organizerId){
+
+        if (msg.eventId.organizerId.toString() !== organizerId) {
             return res.status(403).json({
-                success:false,
-                message:'Not authorized'
+                success: false,
+                message: 'Not authorized'
             });
         }
-        
+
         await EventMessage.findByIdAndDelete(id);
-        
+
         res.json({
-            success:true,
-            message:'Message deleted'
+            success: true,
+            message: 'Message deleted'
         });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const pinMessage = async (req,res) =>{
-    try{
-        const {id} = req.params;
-        const {pinned} = req.body;
+const pinMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { pinned } = req.body;
         const organizerId = req.userInfo.userId;
-        
-        const msg = await EventMessage.findById(id).populate('eventId','organizerId');
-        if(!msg){
+
+        const msg = await EventMessage.findById(id).populate('eventId', 'organizerId');
+        if (!msg) {
             return res.status(404).json({
-                success:false,
-                message:'Message not found'
+                success: false,
+                message: 'Message not found'
             });
         }
-        
-        if(msg.eventId.organizerId.toString() !== organizerId){
+
+        if (msg.eventId.organizerId.toString() !== organizerId) {
             return res.status(403).json({
-                success:false,
-                message:'Not authorized'
+                success: false,
+                message: 'Not authorized'
             });
         }
-        
+
         msg.pinned = pinned;
         await msg.save();
-        
+
         res.json({
-            success:true,
-            message:'Message updated'
+            success: true,
+            message: 'Message updated'
         });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-const reactToMessage = async (req,res) =>{
-    try{
-        const {id} = req.params;
-        const {emoji} = req.body;
+const reactToMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { emoji } = req.body;
         const userId = req.userInfo.userId;
-        
-        if(!emoji){
+
+        if (!emoji) {
             return res.status(400).json({
-                success:false,
-                message:'Emoji required'
+                success: false,
+                message: 'Emoji required'
             });
         }
-        
+
         const msg = await EventMessage.findById(id);
-        if(!msg){
+        if (!msg) {
             return res.status(404).json({
-                success:false,
-                message:'Message not found'
+                success: false,
+                message: 'Message not found'
             });
         }
-        
+
         // Toggle reaction: remove if exists, add if not
         const existingIdx = msg.reactions.findIndex(
             r => r.userId.toString() === userId && r.emoji === emoji
         );
-        
-        if(existingIdx >= 0){
-            msg.reactions.splice(existingIdx,1);
+
+        if (existingIdx >= 0) {
+            msg.reactions.splice(existingIdx, 1);
         } else {
-            msg.reactions.push({userId,emoji});
+            msg.reactions.push({ userId, emoji });
         }
-        
+
         await msg.save();
-        
+
         res.json({
-            success:true,
-            message:'Reaction updated',
-            reactions:msg.reactions
+            success: true,
+            message: 'Reaction updated',
+            reactions: msg.reactions
         });
     }
-    catch(err){
+    catch (err) {
         res.status(500).json({
-            success:false,
-            message:'Server error'
+            success: false,
+            message: 'Server error'
         });
     }
 };
 
-module.exports = {postMessage,getMessages,deleteMessage,pinMessage,reactToMessage};
+module.exports = { postMessage, getMessages, deleteMessage, pinMessage, reactToMessage };

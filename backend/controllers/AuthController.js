@@ -14,7 +14,7 @@ const register = async (req, res) => {
         }
 
         if (participantType === 'iiit') {
-            if (!email.endsWith('@iiit.ac.in')) {
+            if (!email.endsWith('iiit.ac.in')) {
                 return res.status(400).json({ 
                     success: false, 
                     message: 'IIIT students must use @iiit.ac.in email' 

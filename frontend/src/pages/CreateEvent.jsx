@@ -1,4 +1,3 @@
-// Create Event Form
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -8,7 +7,7 @@ function CreateEvent() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -25,10 +24,9 @@ function CreateEvent() {
       merchName: '',
       variants: [{ name: 'Default', price: 0, stock: 0 }]
     },
-    customFields: [] // Custom registration form fields
+    customFields: []
   });
 
-  // Custom form field types
   const fieldTypes = [
     { value: 'text', label: 'Short Text' },
     { value: 'textarea', label: 'Long Text' },
@@ -57,7 +55,6 @@ function CreateEvent() {
     });
   };
 
-  // Merchandise variants handlers
   const addVariant = () => {
     setFormData({
       ...formData,
@@ -92,7 +89,6 @@ function CreateEvent() {
     });
   };
 
-  // Custom form fields handlers
   const addCustomField = () => {
     setFormData({
       ...formData,
@@ -137,7 +133,6 @@ function CreateEvent() {
     setFormData({ ...formData, customFields: newFields });
   };
 
-  // Move field up
   const moveFieldUp = (index) => {
     if (index === 0) return;
     const newFields = [...formData.customFields];
@@ -145,7 +140,6 @@ function CreateEvent() {
     setFormData({ ...formData, customFields: newFields });
   };
 
-  // Move field down
   const moveFieldDown = (index) => {
     if (index === formData.customFields.length - 1) return;
     const newFields = [...formData.customFields];
@@ -210,22 +204,21 @@ function CreateEvent() {
           </button>
         </div>
       </nav>
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Create New Event</h1>
-        
+
         {error && (
           <div className="bg-red-100 border-2 border-red-500 text-red-700 p-3 mb-4">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="border-2 border-black p-6">
-          
-          {/* Basic Info */}
+
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Basic Information</h2>
-            
+
             <div className="mb-4">
               <label className="block font-bold mb-2">Event Name *</label>
               <input
@@ -279,10 +272,9 @@ function CreateEvent() {
             </div>
           </div>
 
-          {/* Dates */}
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Dates & Times</h2>
-            
+
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block font-bold mb-2">Registration Deadline *</label>
@@ -322,10 +314,9 @@ function CreateEvent() {
             </div>
           </div>
 
-          {/* Registration Details */}
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Registration Details</h2>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-bold mb-2">Registration Limit (0 = unlimited)</label>
@@ -366,10 +357,9 @@ function CreateEvent() {
             </div>
           </div>
 
-          {/* Merchandise */}
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Merchandise (Optional)</h2>
-            
+
             <div className="mb-4">
               <label className="flex items-center">
                 <input
@@ -451,11 +441,10 @@ function CreateEvent() {
             )}
           </div>
 
-          {/* Custom Registration Form Builder */}
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Custom Registration Fields (Optional)</h2>
             <p className="text-gray-600 mb-4">Add custom fields to collect additional information during registration. You can reorder fields using the arrow buttons.</p>
-            
+
             {formData.customFields.map((field, index) => (
               <div key={index} className="border border-gray-300 p-4 mb-4">
                 <div className="flex justify-between items-start mb-3">
@@ -486,7 +475,7 @@ function CreateEvent() {
                     Remove
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <label className="block text-sm font-bold mb-1">Field Name</label>
@@ -511,7 +500,7 @@ function CreateEvent() {
                     </select>
                   </div>
                 </div>
-                
+
                 <label className="flex items-center mb-3">
                   <input
                     type="checkbox"
@@ -521,7 +510,7 @@ function CreateEvent() {
                   />
                   <span className="text-sm">Required field</span>
                 </label>
-                
+
                 {field.type === 'dropdown' && (
                   <div>
                     <label className="block text-sm font-bold mb-1">Options</label>
@@ -554,7 +543,7 @@ function CreateEvent() {
                 )}
               </div>
             ))}
-            
+
             <button
               type="button"
               onClick={addCustomField}
@@ -564,7 +553,6 @@ function CreateEvent() {
             </button>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}

@@ -1,4 +1,3 @@
-// Admin Dashboard - Manage Organizers
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -24,13 +23,13 @@ function AdminDashboard() {
 
   const fetchOrganizers = async () => {
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       const response = await axios.get(
         `${API_URL}/admin/organizers`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setOrganizers(response.data.organizers || []);
       setLoading(false);
     } catch (err) {
@@ -41,7 +40,7 @@ function AdminDashboard() {
 
   const fetchPasswordResets = async () => {
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       const response = await axios.get(
         `${API_URL}/admin/password-resets`,
@@ -55,14 +54,14 @@ function AdminDashboard() {
 
   const handleApproveReset = async (id) => {
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       const response = await axios.put(
         `${API_URL}/admin/password-resets/${id}/approve`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert(`Password reset approved! New password: ${response.data.newPassword}`);
       fetchPasswordResets();
     } catch (err) {
@@ -73,14 +72,14 @@ function AdminDashboard() {
   const handleRejectReset = async (id) => {
     const comment = prompt('Enter rejection reason (optional):');
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       await axios.put(
         `${API_URL}/admin/password-resets/${id}/reject`,
         { comment: comment || 'Request rejected by admin' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Password reset rejected');
       fetchPasswordResets();
     } catch (err) {
@@ -91,14 +90,14 @@ function AdminDashboard() {
   const handleAddOrganizer = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       const response = await axios.post(
         `${API_URL}/admin/organizers`,
         newOrganizer,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const creds = response.data.credentials;
       if (creds) {
         alert(`Organizer created!\n\nLogin Email: ${creds.loginEmail}\nAuto-generated Password: ${creds.password}\n\nPlease share these credentials securely with the organizer.`);
@@ -115,14 +114,14 @@ function AdminDashboard() {
 
   const handleToggleStatus = async (id) => {
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       await axios.put(
         `${API_URL}/admin/organizers/${id}/toggle`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       fetchOrganizers();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to toggle organizer status');
@@ -131,15 +130,15 @@ function AdminDashboard() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to permanently delete this organizer?')) return;
-    
+
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       await axios.delete(
         `${API_URL}/admin/organizers/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Organizer deleted');
       fetchOrganizers();
     } catch (err) {
@@ -149,7 +148,7 @@ function AdminDashboard() {
 
   const handleArchive = async (id) => {
     const token = localStorage.getItem('adminToken');
-    
+
     try {
       await axios.put(
         `${API_URL}/admin/organizers/${id}/archive`,
@@ -209,7 +208,7 @@ function AdminDashboard() {
             onClick={() => setActiveTab('password-resets')}
             className={`px-4 py-2 -mb-0.5 ${activeTab === 'password-resets' ? 'border-b-4 border-black font-bold' : 'text-gray-600'}`}
           >
-            Password Resets 
+            Password Resets
             {passwordResets.filter(r => r.status === 'pending').length > 0 && (
               <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                 {passwordResets.filter(r => r.status === 'pending').length}
@@ -237,112 +236,111 @@ function AdminDashboard() {
               </button>
             </div>
 
-        {showAddForm && (
-          <div className="border-2 border-black p-6 mb-6">
-            <h3 className="text-xl font-bold mb-4">Add New Organizer</h3>
-            <form onSubmit={handleAddOrganizer} className="space-y-4">
-              <div>
-                <label className="block mb-1 font-bold">Name</label>
-                <input
-                  type="text"
-                  value={newOrganizer.name}
-                  onChange={(e) => setNewOrganizer({...newOrganizer, name: e.target.value})}
-                  className="w-full p-2 border-2 border-black"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1 font-bold">Category</label>
-                <select
-                  value={newOrganizer.category}
-                  onChange={(e) => setNewOrganizer({...newOrganizer, category: e.target.value})}
-                  className="w-full p-2 border-2 border-black"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  <option value="Cultural">Cultural</option>
-                  <option value="Technical">Technical</option>
-                  <option value="Sports">Sports</option>
-                  <option value="Literary">Literary</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">Login email and password will be auto-generated by the system.</p>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-800"
-              >
-                Add Organizer
-              </button>
-            </form>
-          </div>
-        )}
-
-        {loading ? (
-          <p>Loading organizers...</p>
-        ) : organizers.length === 0 ? (
-          <div className="border-2 border-black p-6">
-            <p>No organizers found.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {organizers.map(organizer => (
-              <div key={organizer._id} className="border-2 border-black p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg mb-2">{organizer.name}</h3>
-                    <p className="text-sm mb-1"><strong>Email:</strong> {organizer.loginEmail}</p>
-                    <p className="text-sm mb-1">
-                      <strong>Status:</strong>{' '}
-                      <span className={`px-2 py-1 text-xs border-2 ${
-                        organizer.archived 
-                          ? 'border-gray-500 bg-gray-200'
-                          : organizer.active 
-                          ? 'border-green-500 bg-green-100' 
-                          : 'border-red-500 bg-red-100'
-                      }`}>
-                        {organizer.archived ? 'ARCHIVED' : organizer.active ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
-                    </p>
-                    <p className="text-sm">
-                      <strong>Created:</strong> {new Date(organizer.createdAt).toLocaleDateString()}
-                    </p>
+            {showAddForm && (
+              <div className="border-2 border-black p-6 mb-6">
+                <h3 className="text-xl font-bold mb-4">Add New Organizer</h3>
+                <form onSubmit={handleAddOrganizer} className="space-y-4">
+                  <div>
+                    <label className="block mb-1 font-bold">Name</label>
+                    <input
+                      type="text"
+                      value={newOrganizer.name}
+                      onChange={(e) => setNewOrganizer({ ...newOrganizer, name: e.target.value })}
+                      className="w-full p-2 border-2 border-black"
+                      required
+                    />
                   </div>
-                  
-                  <div className="flex gap-2 flex-wrap">
-                    {organizer.active ? (
-                      <button
-                        onClick={() => handleToggleStatus(organizer._id)}
-                        className="px-3 py-1 bg-yellow-600 text-white border-2 border-yellow-700 hover:bg-yellow-700 text-sm"
-                      >
-                        Deactivate
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleToggleStatus(organizer._id)}
-                        className="px-3 py-1 bg-green-600 text-white border-2 border-green-700 hover:bg-green-700 text-sm"
-                      >
-                        Activate
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleArchive(organizer._id)}
-                      className="px-3 py-1 bg-gray-600 text-white border-2 border-gray-700 hover:bg-gray-700 text-sm"
+                  <div>
+                    <label className="block mb-1 font-bold">Category</label>
+                    <select
+                      value={newOrganizer.category}
+                      onChange={(e) => setNewOrganizer({ ...newOrganizer, category: e.target.value })}
+                      className="w-full p-2 border-2 border-black"
+                      required
                     >
-                      {organizer.archived ? 'Unarchive' : 'Archive'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(organizer._id)}
-                      className="px-3 py-1 bg-red-600 text-white border-2 border-red-700 hover:bg-red-700 text-sm"
-                      >
-                      Delete
-                    </button>
+                      <option value="">Select Category</option>
+                      <option value="Cultural">Cultural</option>
+                      <option value="Technical">Technical</option>
+                      <option value="Sports">Sports</option>
+                      <option value="Literary">Literary</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
-                </div>
+                  <p className="text-sm text-gray-600 mb-2">Login email and password will be auto-generated by the system.</p>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-black text-white border-2 border-black hover:bg-gray-800"
+                  >
+                    Add Organizer
+                  </button>
+                </form>
               </div>
-            ))}
-          </div>
-        )}
+            )}
+
+            {loading ? (
+              <p>Loading organizers...</p>
+            ) : organizers.length === 0 ? (
+              <div className="border-2 border-black p-6">
+                <p>No organizers found.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {organizers.map(organizer => (
+                  <div key={organizer._id} className="border-2 border-black p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg mb-2">{organizer.name}</h3>
+                        <p className="text-sm mb-1"><strong>Email:</strong> {organizer.loginEmail}</p>
+                        <p className="text-sm mb-1">
+                          <strong>Status:</strong>{' '}
+                          <span className={`px-2 py-1 text-xs border-2 ${organizer.archived
+                              ? 'border-gray-500 bg-gray-200'
+                              : organizer.active
+                                ? 'border-green-500 bg-green-100'
+                                : 'border-red-500 bg-red-100'
+                            }`}>
+                            {organizer.archived ? 'ARCHIVED' : organizer.active ? 'ACTIVE' : 'INACTIVE'}
+                          </span>
+                        </p>
+                        <p className="text-sm">
+                          <strong>Created:</strong> {new Date(organizer.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2 flex-wrap">
+                        {organizer.active ? (
+                          <button
+                            onClick={() => handleToggleStatus(organizer._id)}
+                            className="px-3 py-1 bg-yellow-600 text-white border-2 border-yellow-700 hover:bg-yellow-700 text-sm"
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleStatus(organizer._id)}
+                            className="px-3 py-1 bg-green-600 text-white border-2 border-green-700 hover:bg-green-700 text-sm"
+                          >
+                            Activate
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleArchive(organizer._id)}
+                          className="px-3 py-1 bg-gray-600 text-white border-2 border-gray-700 hover:bg-gray-700 text-sm"
+                        >
+                          {organizer.archived ? 'Unarchive' : 'Archive'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(organizer._id)}
+                          className="px-3 py-1 bg-red-600 text-white border-2 border-red-700 hover:bg-red-700 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
@@ -350,7 +348,7 @@ function AdminDashboard() {
         {activeTab === 'password-resets' && (
           <div>
             <h2 className="text-3xl font-bold mb-6">Password Reset Requests</h2>
-            
+
             {passwordResets.length === 0 ? (
               <div className="border-2 border-black p-6">
                 <p>No password reset requests.</p>
@@ -372,13 +370,12 @@ function AdminDashboard() {
                         </p>
                         <p className="text-sm mb-1">
                           <strong>Status:</strong>{' '}
-                          <span className={`px-2 py-1 text-xs border-2 ${
-                            request.status === 'pending' 
+                          <span className={`px-2 py-1 text-xs border-2 ${request.status === 'pending'
                               ? 'border-yellow-500 bg-yellow-100'
                               : request.status === 'approved'
-                              ? 'border-green-500 bg-green-100'
-                              : 'border-red-500 bg-red-100'
-                          }`}>
+                                ? 'border-green-500 bg-green-100'
+                                : 'border-red-500 bg-red-100'
+                            }`}>
                             {request.status.toUpperCase()}
                           </span>
                         </p>
@@ -388,7 +385,7 @@ function AdminDashboard() {
                           </p>
                         )}
                       </div>
-                      
+
                       {request.status === 'pending' && (
                         <div className="flex gap-2">
                           <button

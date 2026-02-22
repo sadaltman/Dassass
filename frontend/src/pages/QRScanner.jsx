@@ -1,4 +1,3 @@
-// QR Scanner for Attendance
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -11,16 +10,14 @@ function QRScanner() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  // Camera scanning
-  const [scanMode, setScanMode] = useState('manual'); // 'manual' or 'camera'
+
+  const [scanMode, setScanMode] = useState('manual');
   const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const scanningRef = useRef(false);
 
-  // Attendance dashboard
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState('');
   const [attendanceStats, setAttendanceStats] = useState(null);
@@ -29,7 +26,6 @@ function QRScanner() {
   useEffect(() => {
     fetchOrganizerEvents();
     return () => {
-      // Cleanup camera on unmount
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -53,7 +49,7 @@ function QRScanner() {
       setAttendanceStats(null);
       return;
     }
-    
+
     const token = localStorage.getItem('organizerToken');
     try {
       const response = await axios.get(`${API_URL}/registrations/event/${eventId}`, {
@@ -77,7 +73,6 @@ function QRScanner() {
     }
   }, [selectedEvent]);
 
-  // Start camera
   const startCamera = async () => {
     try {
       console.log('Requesting camera access...');
@@ -86,20 +81,18 @@ function QRScanner() {
       });
       console.log('Camera stream obtained:', stream);
       console.log('Video tracks:', stream.getVideoTracks());
-      
+
       streamRef.current = stream;
       scanningRef.current = true;
       setCameraActive(true);
       setScanMode('camera');
-      
-      // Wait a bit for React to render the video element
+
       setTimeout(() => {
         if (videoRef.current) {
           console.log('Attaching stream to video element');
           videoRef.current.srcObject = stream;
           videoRef.current.play().then(() => {
             console.log('Video playing successfully');
-            // Start scanning loop
             setTimeout(() => {
               console.log('Starting scan loop');
               requestAnimationFrame(scanQRCode);
@@ -119,7 +112,6 @@ function QRScanner() {
     }
   };
 
-  // Stop camera
   const stopCamera = () => {
     scanningRef.current = false;
     if (streamRef.current) {
@@ -130,51 +122,46 @@ function QRScanner() {
     setScanMode('manual');
   };
 
-  // Scan QR code from video frame
   const scanQRCode = async () => {
     if (!scanningRef.current || !videoRef.current || !canvasRef.current) {
       console.log('Scan conditions not met:', { scanning: scanningRef.current, hasVideo: !!videoRef.current, hasCanvas: !!canvasRef.current });
       return;
     }
-    
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    
+
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Get image data and try to decode QR
+
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
-      // Use jsQR library to decode QR code
+
       try {
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'attemptBoth'
         });
-        
+
         if (code && code.data) {
           console.log('QR Code detected:', code.data);
           const qrData = code.data;
-          
+
           let ticketId = null;
-          
-          // Try to parse as JSON first
+
           try {
             const parsed = JSON.parse(qrData);
             if (parsed.ticketId) {
               ticketId = parsed.ticketId;
             }
           } catch (e) {
-            // Not JSON, try regex pattern
             const ticketMatch = qrData.match(/TKT-[A-Z0-9]+/);
             if (ticketMatch) {
               ticketId = ticketMatch[0];
             }
           }
-          
+
           if (ticketId) {
             console.log('Valid ticket found:', ticketId);
             setTicketId(ticketId);
@@ -189,18 +176,16 @@ function QRScanner() {
         console.error('QR code detection error:', err);
       }
     }
-    
-    // Continue scanning
+
     if (scanningRef.current) {
       requestAnimationFrame(scanQRCode);
     }
   };
 
-  // Handle file upload for QR image
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const img = new Image();
     img.onload = async () => {
       const canvas = document.createElement('canvas');
@@ -208,31 +193,29 @@ function QRScanner() {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
-      
+
       try {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'attemptBoth'
         });
-        
+
         if (code && code.data) {
           const qrData = code.data;
           let ticketId = null;
-          
-          // Try to parse as JSON first
+
           try {
             const parsed = JSON.parse(qrData);
             if (parsed.ticketId) {
               ticketId = parsed.ticketId;
             }
           } catch (e) {
-            // Not JSON, try regex pattern
             const ticketMatch = qrData.match(/TKT-[A-Z0-9]+/);
             if (ticketMatch) {
               ticketId = ticketMatch[0];
             }
           }
-          
+
           if (ticketId) {
             setTicketId(ticketId);
             handleValidate(ticketId);
@@ -259,7 +242,7 @@ function QRScanner() {
     setResult(null);
 
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       const response = await axios.post(
         `${API_URL}/registrations/validate-qr`,
@@ -269,8 +252,7 @@ function QRScanner() {
 
       setResult(response.data);
       setLoading(false);
-      
-      // Add to recent scans
+
       if (response.data.valid) {
         setRecentScans(prev => [{
           ticketId: id,
@@ -288,7 +270,7 @@ function QRScanner() {
 
   const handleMarkAttendance = async (registrationId) => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       await axios.post(
         `${API_URL}/registrations/${registrationId}/attendance`,
@@ -301,8 +283,7 @@ function QRScanner() {
         message: 'Attendance marked successfully!',
         alreadyScanned: true
       });
-      
-      // Refresh attendance stats
+
       if (selectedEvent) {
         fetchAttendanceStats(selectedEvent);
       }
@@ -311,17 +292,16 @@ function QRScanner() {
     }
   };
 
-  // Manual override for attendance
   const handleManualOverride = async (registrationId, reason) => {
     const token = localStorage.getItem('organizerToken');
-    
+
     try {
       await axios.post(
         `${API_URL}/registrations/${registrationId}/attendance`,
         { manualOverride: true, reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Manual override applied successfully');
       if (selectedEvent) {
         fetchAttendanceStats(selectedEvent);
@@ -331,13 +311,12 @@ function QRScanner() {
     }
   };
 
-  // Export attendance CSV
   const handleExportAttendance = () => {
     if (!attendanceStats?.registrations?.length) {
       alert('No attendance data to export');
       return;
     }
-    
+
     const headers = ['Name', 'Email', 'Ticket ID', 'Attendance', 'Attended At'];
     const rows = attendanceStats.registrations.map(reg => [
       `${reg.userId?.firstName || ''} ${reg.userId?.lastName || ''}`,
@@ -346,12 +325,12 @@ function QRScanner() {
       reg.attended ? 'Present' : 'Absent',
       reg.attendedAt ? new Date(reg.attendedAt).toLocaleString() : ''
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -372,16 +351,14 @@ function QRScanner() {
           </button>
         </div>
       </nav>
-      
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">QR Code Scanner & Attendance</h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Scanner Section */}
           <div className="border-2 border-black p-6">
             <h2 className="text-xl font-bold mb-4">Scan Ticket</h2>
-            
-            {/* Scan Mode Toggle */}
+
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => { stopCamera(); setScanMode('manual'); }}
@@ -405,8 +382,7 @@ function QRScanner() {
                 />
               </label>
             </div>
-            
-            {/* Camera View */}
+
             {scanMode === 'camera' && (
               <div className="mb-4">
                 <div className="relative border-2 border-black" style={{ minHeight: '300px', backgroundColor: '#000' }}>
@@ -432,8 +408,7 @@ function QRScanner() {
                 </button>
               </div>
             )}
-            
-            {/* Manual Entry */}
+
             {scanMode === 'manual' && (
               <div className="mb-6">
                 <label className="block font-bold mb-2">Ticket ID</label>
@@ -444,7 +419,7 @@ function QRScanner() {
                   placeholder="Enter ticket ID (e.g., TKT-ABC123)"
                   className="w-full border-2 border-black p-2 mb-4"
                 />
-                
+
                 <button
                   onClick={() => handleValidate()}
                   disabled={loading}
@@ -468,7 +443,7 @@ function QRScanner() {
                 <p><strong>Email:</strong> {result.participant?.email}</p>
                 <p><strong>Event:</strong> {result.event?.name}</p>
                 <p><strong>Already Scanned:</strong> {result.alreadyScanned ? `Yes (at ${new Date(result.scannedAt).toLocaleString()})` : 'No'}</p>
-                
+
                 {!result.alreadyScanned && (
                   <button
                     onClick={() => handleMarkAttendance(result.registrationId)}
@@ -483,8 +458,7 @@ function QRScanner() {
                 )}
               </div>
             )}
-            
-            {/* Recent Scans */}
+
             {recentScans.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-bold mb-2">Recent Scans</h3>
@@ -500,10 +474,9 @@ function QRScanner() {
             )}
           </div>
 
-          {/* Attendance Dashboard */}
           <div className="border-2 border-black p-6">
             <h2 className="text-xl font-bold mb-4">Live Attendance Dashboard</h2>
-            
+
             <div className="mb-4">
               <label className="block font-bold mb-2">Select Event</label>
               <select
@@ -517,7 +490,7 @@ function QRScanner() {
                 ))}
               </select>
             </div>
-            
+
             {attendanceStats && (
               <>
                 <div className="grid grid-cols-3 gap-4 mb-4">
@@ -534,11 +507,10 @@ function QRScanner() {
                     <p className="text-sm text-gray-600">Not Yet Scanned</p>
                   </div>
                 </div>
-                
-                {/* Progress bar */}
+
                 <div className="mb-4">
                   <div className="h-4 bg-gray-200 border border-black">
-                    <div 
+                    <div
                       className="h-full bg-green-500"
                       style={{ width: `${(attendanceStats.attended / attendanceStats.total) * 100}%` }}
                     />
@@ -547,15 +519,14 @@ function QRScanner() {
                     {((attendanceStats.attended / attendanceStats.total) * 100).toFixed(1)}% checked in
                   </p>
                 </div>
-                
+
                 <button
                   onClick={handleExportAttendance}
                   className="w-full px-4 py-2 border-2 border-black hover:bg-gray-100 mb-4"
                 >
                   Export Attendance CSV
                 </button>
-                
-                {/* Not Scanned List */}
+
                 <div>
                   <h3 className="font-bold mb-2">Not Yet Scanned ({attendanceStats.notAttended})</h3>
                   <div className="max-h-60 overflow-y-auto border border-gray-300">

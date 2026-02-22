@@ -1,75 +1,74 @@
 const mongoose = require('mongoose');
 
 const registrationSchema = new mongoose.Schema({
-    eventId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Event',
-        required:true
+    eventId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Event',
+        required: true
     },
-    userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    registrationType:{
-        type:String,
-        enum:['normal','merchandise'],
-        required:true
+    registrationType: {
+        type: String,
+        enum: ['normal', 'merchandise'],
+        required: true
     },
-    status:{
-        type:String,
-        enum:['pending','confirmed','cancelled','rejected'],
-        default:'confirmed'
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'cancelled', 'rejected'],
+        default: 'confirmed'
     },
-    formData:{
-        type:Object,
-        default:{}
+    formData: {
+        type: Object,
+        default: {}
     },
-    merchVariant:{
-        type:String
+    merchVariant: {
+        type: String
     },
-    paymentStatus:{
-        type:String,
-        enum:['pending','approved','rejected'],
-        default:'pending'
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
-    paymentProof:{
-        type:String
+    paymentProof: {
+        type: String
     },
-    rejectionReason:{
-        type:String
+    rejectionReason: {
+        type: String
     },
-    ticketId:{
-        type:String,
-        unique:true,
-        sparse:true
+    ticketId: {
+        type: String,
+        unique: true,
+        sparse: true
     },
-    qrCode:{
-        type:String
+    qrCode: {
+        type: String
     },
-    attended:{
-        type:Boolean,
-        default:false
+    attended: {
+        type: Boolean,
+        default: false
     },
-    attendedAt:{
-        type:Date
+    attendedAt: {
+        type: Date
     },
-    // Audit fields for manual override
-    manualOverride:{
-        type:Boolean,
-        default:false
+    manualOverride: {
+        type: Boolean,
+        default: false
     },
-    overrideReason:{
-        type:String
+    overrideReason: {
+        type: String
     },
-    overrideBy:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Organizer'
+    overrideBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organizer'
     }
-},{
-    timestamps:true
+}, {
+    timestamps: true
 });
 
-registrationSchema.index({eventId:1,userId:1},{unique:true});
+registrationSchema.index({ eventId: 1, userId: 1 }, { unique: true });
 
-module.exports = mongoose.model('Registration',registrationSchema);
+module.exports = mongoose.model('Registration', registrationSchema);
