@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
         type: String
     }],
     followedClubs: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId, //Object id reference
         ref: 'Organizer'
     }],
     onboardingComplete: {

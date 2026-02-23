@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const sendEmail = async(toEmail, userName, eventName, ticketId, qrCode) => {
+const sendEmail = async (toEmail, userName, eventName, ticketId, qrCode) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -7,7 +7,7 @@ const sendEmail = async(toEmail, userName, eventName, ticketId, qrCode) => {
             pass: process.env.GMAIL_APP_PASSWORD
         }
     });
-        const base64Data = qrCode.replace(/^data:image\/png;base64,/, '');
+    const base64Data = qrCode.replace(/^data:image\/png;base64,/, '');
     const qrBuffer = Buffer.from(base64Data, 'base64');
     const mail = {
         from: `Felicity <${process.env.GMAIL_USER}>`,

@@ -103,7 +103,7 @@ const getAllEvents = async (req, res) => {
         if (eventType) filter.eventType = eventType;
         if (eligibility) filter.eligibility = eligibility;
         if (search) {
-            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); //fuzzy
             const fuzzyPattern = escapedSearch.split('').join('.*');
 
             const matchingOrgs = await organiser.find({
@@ -322,11 +322,12 @@ const deleteEvent = async (req, res) => {
 const getMyEvents = async (req, res) => {
     try {
         const events = await Event.find({ organizerId: req.userInfo.userId }).sort({ createdAt: -1 });
+        const updatedEvents = await Promise.all(events.map(e => autoUpdateEventStatus(e)));
 
         res.json({
             success: true,
-            count: events.length,
-            events
+            count: updatedEvents.length,
+            events: updatedEvents
         });
     }
     catch (err) {

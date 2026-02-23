@@ -132,15 +132,28 @@ const registerForEvent = async (req, res) => {
             userName: `${user.firstName} ${user.lastName}`
         });
         const qrCodeUrl = await QRCode.toDataURL(qrData);
+
+        const { paymentProof } = req.body;
+        // Require payment proof for normal events if there is a fee
+        if (event.eventType === 'normal' && event.regFee > 0 && !paymentProof) {
+            return res.status(400).json({
+                success: false,
+                message: 'Payment proof required for paid events'
+            });
+        }
+
+        const isPaidNormal = event.eventType === 'normal' && event.regFee > 0;
+
         const registration = new Registration({
             eventId,
             userId,
             registrationType: 'normal',
             formData: formData || {},
-            ticketId,
-            qrCode: qrCodeUrl,
-            status: 'confirmed',
-            paymentStatus: 'approved'
+            ticketId: isPaidNormal ? undefined : ticketId,
+            qrCode: isPaidNormal ? undefined : qrCodeUrl,
+            status: isPaidNormal ? 'pending' : 'confirmed',
+            paymentStatus: isPaidNormal ? 'pending' : 'approved',
+            paymentProof: paymentProof || undefined
         });
 
         await registration.save();
@@ -183,7 +196,11 @@ const getMyRegistrations = async (req, res) => {
         const userId = req.userInfo.userId;
 
         const registrations = await Registration.find({ userId })
-            .populate('eventId', 'name description startDate endDate status')
+            .populate({
+                path: 'eventId',
+                select: 'name description startDate endDate status eventType organizerId',
+                populate: { path: 'organizerId', select: 'name' }
+            })
             .sort({ createdAt: -1 });
 
         res.json({
@@ -500,7 +517,6 @@ const getPendingPayments = async (req, res) => {
 
         const pendingOrders = await Registration.find({
             eventId: { $in: eventIds },
-            registrationType: 'merchandise',
             paymentStatus: 'pending'
         })
             .populate('userId', 'firstName lastName email')
@@ -560,13 +576,17 @@ const approvePayment = async (req, res) => {
         }
 
         const event = registration.eventId;
-        const variant = event.merchDetails.variants.find(v => v.name === registration.merchVariant);
 
-        if (!variant || variant.stock <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Out of stock'
-            });
+        if (registration.registrationType === 'merchandise') {
+            const variant = event.merchDetails.variants.find(v => v.name === registration.merchVariant);
+
+            if (!variant || variant.stock <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Out of stock'
+                });
+            }
+            variant.stock--;
         }
 
         const nanoid = await getNanoid();
@@ -587,7 +607,6 @@ const approvePayment = async (req, res) => {
         registration.qrCode = qrCodeUrl;
         await registration.save();
 
-        variant.stock--;
         await event.save();
         sendEmail(
             registration.userId.email,

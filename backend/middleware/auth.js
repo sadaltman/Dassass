@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const authenticateUser = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    
     if (!authHeader) {
         return res.status(401).json({
             success: false,
@@ -17,9 +16,7 @@ const authenticateUser = (req, res, next) => {
             message: 'Invalid authorization format'
         });
     }
-
     const tokenValue = tokenParts[1];
-
     try {
         const data = jwt.verify(tokenValue, process.env.JWT_SECRET);
         req.userInfo = data;
@@ -49,4 +46,4 @@ const requireRole = (allowedroles) => {
     };
 };
 
-module.exports = { authenticateUser, requireRole };
+module.exports = {authenticateUser,requireRole};

@@ -2,9 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const Admin = require('../models/admin');
-
 dotenv.config();
-
 const connectdb = async () =>{
     try{
         await mongoose.connect(process.env.MONGO_URI);

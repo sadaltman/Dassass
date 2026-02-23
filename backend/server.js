@@ -8,7 +8,7 @@ const EventRoutes = require('./routes/EventRoutes');
 const RegistrationRoutes = require('./routes/RegistrationRoutes');
 const MessageRoutes = require('./routes/MessageRoutes');
 
-dotenv.config();
+dotenv.config(); // Now env variables accesible to all files
 const connectdb = require('./config/db');
 connectdb();
 

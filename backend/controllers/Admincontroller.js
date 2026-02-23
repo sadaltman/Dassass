@@ -62,15 +62,15 @@ const createOrganizer = async (req, res) => {
             });
         }
 
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
-        let loginEmail = `${slug}@felicity.club`;
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, ''); // Change input like Coding Club to coding.club
+        let loginEmail = `${slug}@iiit.ac.in`;
         let counter = 1;
         while (await organiser.findOne({ loginEmail })) {
-            loginEmail = `${slug}${counter}@felicity.club`;
+            loginEmail = `${slug}${counter}@iiit.ac.in`;
             counter++;
         }
 
-        const generatedPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-4).toUpperCase();
+        const generatedPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-4).toUpperCase(); //use base 36 for hashing
         const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
         const neworg = new organiser({
