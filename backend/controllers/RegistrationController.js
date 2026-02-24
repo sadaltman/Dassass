@@ -174,13 +174,15 @@ const registerForEvent = async (req, res) => {
                 qrCode: qrCodeUrl
             }
         });
-        sendEmail(
-            user.email,
-            `${user.firstName} ${user.lastName}`,
-            event.name,
-            ticketId,
-            qrCodeUrl
-        );
+        if (!isPaidNormal) {
+            sendEmail(
+                user.email,
+                `${user.firstName} ${user.lastName}`,
+                event.name,
+                ticketId,
+                qrCodeUrl
+            );
+        }
     }
     catch (err) {
         console.log('Registration error:', err);
