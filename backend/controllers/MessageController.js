@@ -29,6 +29,13 @@ const postMessage = async (req, res) => {
             });
         }
 
+        if (registration && event.regFee > 0 && registration.paymentStatus !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Payment must be verified to post in the chat'
+            });
+        }
+
         // Resolve sender name from the correct collection
         let senderName = 'Unknown';
         let senderRole = 'participant';

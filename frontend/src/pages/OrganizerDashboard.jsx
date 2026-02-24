@@ -1,4 +1,3 @@
-// Organizer Dashboard - Main hub for event management
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';

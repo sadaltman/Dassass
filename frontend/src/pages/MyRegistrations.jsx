@@ -1,4 +1,3 @@
-// My Registrations Page - View all your event registrations
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';

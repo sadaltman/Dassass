@@ -1,4 +1,3 @@
-// Club Detail Page - View single organizer details and their events
 import { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';

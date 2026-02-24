@@ -1,4 +1,3 @@
-// Events List Page - Browse all events with search and filters
 import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';

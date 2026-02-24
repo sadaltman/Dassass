@@ -27,14 +27,14 @@ import PaymentApprovals from './pages/PaymentApprovals';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }) { //Protect route and authentication
   const { isAuthenticated, loading } = useContext(AuthContext);
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
 function OrganizerRoute({ children }) {
-  const token = localStorage.getItem('organizerToken');
+  const token = localStorage.getItem('organizerToken'); //see if user logged in as organiser
   return token ? children : <Navigate to="/organizer/login" />;
 }
 

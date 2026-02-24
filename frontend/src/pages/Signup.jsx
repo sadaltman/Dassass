@@ -1,4 +1,3 @@
-// Signup Page - Where new users register
 import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -22,18 +21,16 @@ function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Handle input changes - updates the formData object
   const handleChange = (e) => {
     setFormData({
-      ...formData,  // Keep existing values
-      [e.target.name]: e.target.value  // Update changed field
+      ...formData,  
+      [e.target.name]: e.target.value  
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all required fields');
       return;
@@ -49,7 +46,6 @@ function Signup() {
       return;
     }
 
-    // Allow both student (@iiit.ac.in) and faculty (@iiit.ac.in) emails
     if (formData.participantType === 'iiit' && !formData.email.includes('iiit.ac.in')) {
       setError('IIIT members must use an IIIT email (e.g., @iiit.ac.in, @students.iiit.ac.in, @research.iiit.ac.in)');
       return;
@@ -59,7 +55,6 @@ function Signup() {
     setError('');
     
     try {
-      // Call backend API
       const data = await signupParticipant(
         formData.firstName, 
         formData.lastName, 
@@ -70,14 +65,11 @@ function Signup() {
         formData.collegeName
       );
       
-      // Save token and user data
       login(data.token, data.user);
       
-      // Redirect to onboarding page for new users
       navigate('/onboarding');
       
     } catch (err) {
-      // Show error message from backend
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
       setLoading(false);
     }
@@ -229,10 +221,3 @@ function Signup() {
 }
 
 export default Signup;
-
-// ADVANCED PATTERN:
-// Instead of separate useState for each field, we use ONE object
-// This is more scalable when you have many form fields
-// 
-// ...formData spreads existing values
-// [e.target.name]: value updates specific field

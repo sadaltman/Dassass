@@ -31,24 +31,32 @@ function EventDetails() {
   }, [id]);
 
   useEffect(() => {
-    if (event && isAuthenticated) {
-      checkRegistration();
-      fetchMessages();
+    // Request notification permission upfront
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
-    if (event) {
-      const orgToken = localStorage.getItem('organizerToken');
-      if (orgToken) {
-        try {
-          const payload = JSON.parse(atob(orgToken.split('.')[1]));
-          const eventOrgId = event.organizerId?._id || event.organizerId;
-          if (payload.userId === eventOrgId?.toString()) {
-            setIsOrganizer(true);
-            fetchMessages(orgToken);
-          }
-        } catch (e) {
-        }
-      }
+  }, []);
+
+  useEffect(() => {
+    if (!event) return;
+
+    const token = localStorage.getItem('token') || localStorage.getItem('organizerToken');
+    if (!token && !isAuthenticated) return;
+
+    if (isAuthenticated) checkRegistration();
+
+    const orgToken = localStorage.getItem('organizerToken');
+    if (orgToken) {
+      try {
+        const payload = JSON.parse(atob(orgToken.split('.')[1]));
+        const eventOrgId = event.organizerId?._id || event.organizerId;
+        if (payload.userId === eventOrgId?.toString()) setIsOrganizer(true);
+      } catch (e) { }
     }
+
+    fetchMessages();
+    const pollInterval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(pollInterval);
   }, [event, isAuthenticated]);
 
   const fetchEvent = async () => {
@@ -83,7 +91,27 @@ function EventDetails() {
       const response = await axios.get(`${API_URL}/events/${id}/messages`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(response.data.messages || []);
+      const fetched = response.data.messages || [];
+
+      setMessages(prev => {
+        if (fetched.length > prev.length) {
+          const newMsgs = fetched.slice(prev.length);
+          newMsgs.forEach(msg => {
+            if (
+              msg.senderRole === 'organizer' &&
+              (msg.message.includes('@everyone') || msg.message.includes('@all'))
+            ) {
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(` Announcement: ${event?.name || 'Event'}`, {
+                  body: msg.message,
+                  icon: '/favicon.ico'
+                });
+              }
+            }
+          });
+        }
+        return fetched;
+      });
     } catch (err) {
       console.error('Failed to fetch messages');
     }

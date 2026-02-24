@@ -1,4 +1,3 @@
-// Onboarding Page - New users select interests and follow clubs
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';

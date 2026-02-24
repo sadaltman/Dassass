@@ -1,4 +1,3 @@
-// Profile Page - View and edit participant profile
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';

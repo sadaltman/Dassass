@@ -1,4 +1,3 @@
-// Landing Page - Shows different content based on auth status
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Home from './Home';
@@ -15,7 +14,6 @@ function LandingPage() {
     );
   }
 
-  // Show Dashboard if logged in, Home if not
   return isAuthenticated ? <Dashboard /> : <Home />;
 }
 
